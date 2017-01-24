@@ -1,0 +1,83 @@
+% thesis.tex
+% Time-stamp: <24 Jan 2017 14:00:44 c:/Dropbox/job/publish/old/thesis/thesis.tex>
+
+\documentclass[12pt,letterpaper]{report}
+
+\setlength{\topmargin}{-0.4in}    % distance from top of page to begining of text
+\setlength{\topskip}{0.3in}       % between header and text
+\setlength{\textheight}{9.0in}    % height of main text
+\setlength{\textwidth}{6.25in}       % width of text
+\setlength{\oddsidemargin}{0in}  % odd page left margin
+\setlength{\evensidemargin}{0in}   % even page left margin
+\setlength{\headheight}{15pt}
+
+\usepackage{graphics} 
+\usepackage{natbib}
+\usepackage{color}
+\definecolor{Green}{rgb}{0,.5,0}
+\definecolor{Blue}{rgb}{0,0,0.8} 
+\definecolor{Red}{rgb}{0.7,0,0}
+\usepackage[colorlinks,pagebackref,plainpages=false,
+  citecolor=Blue,
+  linkcolor=Red,
+  plainpages]{hyperref}
+
+%\alternatenum  
+%\nochap 
+
+\begin{document}
+
+\bibliographystyle{apalike}
+
+\begin{titlepage}
+\begin{center}
+
+Applications of interval analysis to selected topics in statistical computing\\
+\vspace{.25 in}
+by\\
+\vspace{.25 in}
+Kevin Wright\\
+\vspace{.5 in}
+A dissertation submitted to the graduate faculty\\
+\vspace{.5 in}
+in partial fulfillment of the requirements for the degree of\\
+\vspace{.25 in}
+DOCTOR OF PHILOSOPHY\\
+\vspace{1 in}
+Major: Statistics\\
+\vspace{.25 in}
+Major Professor: William Kennedy\\
+\vspace{1.5 in}
+Iowa State University\\
+\vspace{.25 in}
+Ames, Iowa\\
+\vspace{.25 in}
+1999\\
+
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+\pagenumbering{arabic}
+
+\include{intro}
+\include{bivchi}
+\include{bivf}
+\include{em}
+\include{conclusion}
+%--------------------------------------------------------------------------
+% Bibliography section
+
+%\begin{thebibliography}{1}
+%\renewcommand{\bibname}{\centerline{COMPREHENSIVE BIBLIOGRAPHY}}
+%\addcontentsline{toc}{chapter}{COMPREHENSIVE BIBLIOGRAPHY}
+
+\bibliography{thesis}
+
+\include{acknowledge}
+
+\end{document}
+
+

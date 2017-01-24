@@ -1,0 +1,1141 @@
+% em.tex
+% Time-stamp: <28 May 2008 11:35:51 c:/X/kw/Research/EM/em.tex>
+
+\documentclass[10pt,twoside]{article}
+\usepackage[sectionbib]{natbib}
+\usepackage{graphics}
+
+\usepackage{color}
+\definecolor{Green}{rgb}{0,.5,0}
+\definecolor{Blue}{rgb}{0,0,0.8} 
+\definecolor{Red}{rgb}{0.7,0,0}
+% To make PDF:
+%   latex em
+%   dvipdfm em
+\usepackage[pagebackref,colorlinks,plainpages=false,
+  citecolor=Blue,
+  linkcolor=Red,
+  plainpages,
+  pdfauthor={Kevin Wright},
+  pdftitle={An Interval Analysis Approach to the EM Algorithm}]{hyperref}
+
+\makeatletter
+% Make section headings be centered
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                 {-3.5ex \@plus -1ex \@minus -.2ex}%
+                 {2.3ex \@plus.2ex}%
+                 {\normalfont\centering\bfseries }}
+% Make subsection headings be centered
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                 {-3.25ex\@plus -1ex \@minus -.2ex}%
+                 {1.5ex \@plus .2ex}%
+                 {\scshape\centering\bfseries}} % Smallcap doesn't work for me
+\makeatother
+
+\raggedright\parindent18pt
+\parskip=.1in
+
+% Set margins
+\usepackage[margin=1in,includehead]{geometry}
+
+\pagestyle{myheadings}
+% Define the even and odd page headings
+\markboth{\rm K. \textsc{Wright} W. J. \textsc{Kennedy} \hspace{2in}} 
+{\textsc{\hspace{1in}An Interval Analysis Approach to the EM Algorithm}}
+
+\begin{document}
+%\pagenumbering{arabic}
+
+\def\bfw{ {\bf w}}
+\def\bfx{{\bf x}}
+\def\bfy{{\bf y}}
+\def\bfOmega{\mbox{\boldmath $\Omega$}}
+\def\bfphi{\mbox{\boldmath $\phi$}}
+\def\bfPhi{\mbox{\boldmath $\Phi$}}
+\def\bfpi{\mbox{\boldmath $\pi$}}
+\def\bfmu{\mbox{\boldmath $\mu$}}
+\def\bfPhi{\mbox{\boldmath $\Phi$}}
+
+\renewcommand\abstractname{}
+
+\renewcommand\refname{REFERENCES}
+
+\title{\bf An Interval Analysis Approach to the EM Algorithm}
+\author{Kevin \textsc{Wright} and William J. \textsc{Kennedy}}
+\date{}
+\maketitle
+\begin{abstract}
+\vspace{-.4in}
+The EM algorithm is widely used in incomplete-data problems (and some
+complete-data problems) for parameter estimation.   One limitation of the EM
+algorithm is that upon termination, it is not always near a global optimum.
+As reported by \cite{WuEM}, when several stationary points exist, 
+convergence to a particular stationary point depends on the
+choice of starting point.  Furthermore, convergence to a saddle point or
+local minimum is also possible.  In the EM algorithm, although the
+log-likelihood is unknown, an interval containing 
+the gradient of the EM $q$ function can be computed at
+individual points using interval analysis methods.  
+By using interval analysis to enclose the gradient of the
+EM $q$ function (and, consequently, the log-likelihood), an algorithm is
+developed that is able to locate all stationary points of the log-likelihood
+within any designated region of the parameter space.  The algorithm is
+applied
+to several examples.  In one example involving the $t$ distribution, the
+algorithm successfully locates (all) seven stationary points of the
+log-likelihood.\\
+
+{\bf Key Words: } Interval arithmetic, Optimization, Interval EM, Maximum
+likelihood 
+\end{abstract}
+
+%--------------------------------------------------------------------------
+
+\section{INTRODUCTION \label{sec:introduction}}
+% Put footnotes
+\footnotetext[1]{Kevin Wright is Senior Research Associate, Pioneer Hi-Bred
+International, Inc., 7300 NW 62nd Avenue, Johnston, IA 50131-1004 (E-mail:
+Kevin.Wright@pioneer.com).  William J. Kennedy is Professor, Department of
+Statistics, Iowa State University, 117 Snedecor Hall, Ames, IA 50011-1210
+(E-mail: wjk@iastate.edu).
+
+\copyright{\it 2000 American Statistical Association, Institute of Mathematical
+Statistics, and Interface Foundation of North America.   
+Journal of Computational and Graphical Statistics, Volume 9, Number 2, 
+Pages 1--16}}
+
+This article explores a variation of the EM algorithm which uses techniques
+of interval analysis to locate multiple stationary points of a
+log-likelihood.
+
+Interval analysis can be used to compute an interval which encloses the
+range
+of a function over a given domain.  By using interval analysis to compute an
+enclosure of the gradient of the log-likelihood over specific regions, those
+regions where the enclosure of the gradient does not contain $0$ can be
+ruled
+out from containing any stationary points.  The algorithm locates stationary
+points by repeatedly dividing into smaller regions precisely those regions
+that have not been ruled out.
+
+The structure of this article proceeds as follows.
+Section~\ref{sec:interval} presents an introduction to interval 
+analysis sufficient to understand this article.  Some of the differences
+between
+calculations with real numbers and interval numbers are noted, along with
+some
+comments about performing interval arithmetic on digital computers.
+Section~\ref{sec:em}  briefly states the traditional EM algorithm and
+presents a computational example using both scalars and intervals.
+Section~\ref{sec:interval_em} introduces a new approach to the EM
+algorithm
+using interval analysis.
+Section~\ref{sec:examples} presents several examples of the algorithm 
+applied
+to different problems.  These examples demonstrate both the accuracy which
+interval arithmetic can provide and the ability of the algorithm to locate
+multiple stationary points.
+Section~\ref{sec:conclusions} provides some conclusions.
+
+%--------------------------------------------------------------------------
+\section{\bf INTERVAL ANALYSIS}\label{sec:interval}
+A good introduction to interval analysis can be found in monographs by
+\cite{HansenBook} and \cite{Moore79}.  Some of the fundamental concepts
+of interval analysis are now presented.
+
+In this article, intervals will be indicated by superscript $I$ and vectors
+will
+be denoted by boldface.
+An interval $x^I = [\underline{x}, \overline{x}]$ 
+is a closed and bounded set of
+real numbers.  For two intervals $x^I$ and $y^I$, 
+interval arithmetic operators are defined in the following manner:
+$$
+x^I \circ y^I =  \{x\circ y : x \in x^I, y \in y^I \}
+$$
+where $\circ \in \{+,-,*,/ \}$ and division is undefined for $0 \in y^I$.
+For these four interval arithmetic operators, closed-form expressions can be
+obtained for direct calculation of results of the operations.
+For example, if $x^I = [\underline{x},\overline{x}]$ and 
+$y^I = [\underline{y},\overline{y}]$, then
+$ x^I + y^I = [\underline{x}+\underline{y}, \overline{x}+\overline{y}]$.
+The {\it Hull} of a set of intervals $x_1^I,\ldots,x_n^I$ is the smallest
+interval containing $x_1^I,\ldots,x_n^I$; that is,
+${\rm Hull}(x_1^I,\ldots,x_n^I) = [\inf\{x : x\in x_i^I, i=1,\ldots,n\}, 
+\sup\{x : x\in x_i^I, i=1,\ldots,n\}]$.
+An {\it interval vector} or {\it box} is simply a vector of intervals.
+An {\it interval function} is an interval-valued function of one or more
+interval arguments.
+In this article, capital letters are used to denote interval functions.
+An interval function $F(x^I_1, \ldots x_n^I)$ 
+is said to be an
+{\it interval extension} or {\it interval enclosure} 
+of $f(x_1, \ldots, x_n)$ if 
+$F([x_1,x_1], \ldots, [x_n,x_n]) = f(x_1, \ldots, x_n)$
+for all $x_i, i=1,\ldots,n$.
+An interval function $F$ is said to be {\it inclusion monotonic} if 
+$F(x^I) \subset F(y^I)$ 
+whenever $x^I \subset y^I$.
+A fundamental property of interval analysis is that rational interval
+functions are inclusion monotonic.
+
+In this article, the {\it natural interval extension} of a real function 
+is used.  This is an interval extension
+in which intervals and interval operations 
+are substituted for scalars and scalar operations.
+The value of any interval extension of 
+a function
+is dependent on the form of the real function.  For example,
+let $f_1 (x) = (x-1)(x+1)$ and $f_2 (x) = xx-1$.
+Let $F_1$ and $F_2$ be the corresponding natural interval
+extensions and let $x^I = [-2,1]$.  Then
+$F_1(x^I) = [-6, 3]$ and $F_2(x^I) = [-3, 3]$
+which both contain $[-1, 3]$, the true range of $f_1$ and $f_2$ over $x^I$.
+This feature of interval computations to sometimes
+overestimate the range of a function
+is referred to as {\it interval dependency}.  Attention must be given to the
+exact expression of an interval
+function to reduce the effect of interval dependency.
+\cite{Hansen:Sharp,HansenBook} presented some results regarding this topic.
+
+When implementing interval arithmetic calculations on computers, care must
+be taken to ensure that rounding errors do not invalidate the 
+inclusion monotonicity
+of interval results.  One way to achieve this is through the
+use of directed rounding modes in the floating-point calculations.  When 
+calculating the lower endpoint of an interval result, the floating-point
+processor is set to round all results {\it down}. For calculation of the
+upper endpoint of an interval result, all calculations are rounded
+{\it up}.  Using the symbols $\bigtriangledown$ and $\bigtriangleup$ to
+denote 
+downward and upward rounding 
+respectively, the actual computer implementation of interval addition is
+$x^I + y^I = [\bigtriangledown (\underline{x}+\underline{y}),
+              \bigtriangleup(\overline{x} + \overline{y})] $.
+Correct use of the rounding modes guarantees that the computed
+result contains the true interval answer.  
+There exist programming languages and software packages 
+which are able to work with
+interval data types and interval operators. 
+\cite{KearfottBook} compares some of these packages including
+INTLIB\_90, C-XSC, BIAS/PROFIL, and others.  There are several ways in which
+these packages implement interval versions of 
+common functions (for example, $\exp$, $\log$)
+depending on the architecture of the underlying hardware and
+software.  In some cases hardware may support directed rounding and
+it may be sufficient to set the rounding mode before calling a
+built-in function.  In other cases it may be necessary to use
+techniques like a Taylor series approximation with bounds on the
+truncation error.
+
+For the research in this article, the
+computations were done using the 
+BIAS/PROFIL package in C++ developed by \cite{Knu93b}.
+
+%--------------------------------------------------------------------------
+\section{\bf THE EM ALGORITHM}\label{sec:em}
+
+The present-day version of
+the EM algorithm first appeared in a landmark article by \cite{DLR}.
+The EM algorithm is a general iterative algorithm for maximum likelihood
+estimation in incomplete-data problems.  The EM algorithm has not only been
+successfully applied in obvious incomplete-data problems, but also in many
+situations where the data appears to be complete, but can be viewed as
+incomplete by introducing latent variables.  
+The intuitive idea behind the EM algorithm is to iterate the 
+following two steps:
+\begin{itemize}
+\item [] Expectation step: Replace missing values (sufficient statistics) by
+estimated
+values.
+\item [] Maximization step: Estimate parameters as if no data were missing.
+\end{itemize}
+Formally, starting with a parameter
+estimate $\bfphi_p$, the E-step calculates the
+conditional expectation of the complete-data log-likelihood, 
+$\log L_c(\bfphi)$, as
+$q(\bfphi | \bfphi_p) = E_{\bfphi_p} \{ \log L_c(\bfphi) \}$
+and then the M-step chooses 
+$\bfphi_{p+1}$ to be any value of $\bfphi \in \bfOmega$ that 
+maximizes $q(\bfphi | \bfphi_p)$; that is,
+$q(\bfphi_{p+1} | \bfphi_p) \geq q(\bfphi | \bfphi_p)$ for any 
+$\bfphi \in \bfOmega$.
+
+%--------------------------------------------------------------------------
+\subsection{An Example Application of the EM Algorithm}
+\label{subsec:trademint}
+The following example from \cite{DLR} 
+is frequently used to introduce the 
+EM algorithm.  Consider a set of 197 animals
+which are classified into four categories.  The observed classification
+counts
+are $\mathbf{y} = (y_1, y_2, y_3, y_4) = (125, 18, 20, 34) $.  The
+classification of the random variable $Y$ is 
+modeled as following a multinomial distribution:
+$$
+Y \sim Multinomial\left(197, \frac{1}{2} + \frac{1}{4} p,    
+  \frac{1}{4} - \frac{1}{4} p, 
+  \frac{1}{4} - \frac{1}{4} p, \frac{1}{4} p \right)$$ 
+where $p$ is unknown and to be estimated.  There is no missing data in this
+problem and 
+$p$ is easily estimated by a maximum likelihood approach.  For illustration
+ purposes, the problem is reformulated with
+missing data.  Suppose the first classification category $Y_1$ is split
+into two categories and a new random variable $X$ is modeled:
+$$
+X \sim Multinomial\left(197, \frac{1}{2}, \frac{1}{4}p, 
+  \frac{1}{4} - \frac{1}{4} p , 
+  \frac{1}{4} - \frac{1}{4} p , \frac{1}{4} p\right).$$
+The incomplete data vector $\bfx$ is $(x_1, x_2, x_3, x_4, x_5) $ 
+and thus $\bfy$ can be written
+$ \mathbf{y ( }\mathbf{x}) = (x_1 + x_2, x_3, x_4, x_5)$.
+
+For the incomplete-data problem, it is easy to show that 
+$$(X_2 | X_1 + X_2 = 125) \sim
+   Binomial \left(125,
+\frac{\frac{1}{4}p}{\frac{1}{2}+\frac{1}{4}p}\right),$$ 
+and the E-Step in the usual scalar EM algorithm becomes
+ $x_{1,k} = 125( \frac{1}{2}) / (\frac{1}{2}+\frac{1}{4}p)$ and
+ $x_{2,k} = 125( \frac{1}{4}p) /(\frac{1}{2}+\frac{1}{4}p)$. 
+From the complete-data likelihood of $p$,
+$$ f(p|\mathbf{x}) \propto 
+   \left(\frac{1}{2}\right)^{x_{1,k}} \left(\frac{1}{4}p\right)^{x_{2,k}} 
+   \left(\frac{1}{4}- \frac{1}{4} p\right)^{x_3 + x_4} 
+   \left(\frac{1}{4} p\right)^{x_5} $$
+the M-Step in the usual scalar EM algorithm is:
+$$
+p_k = \frac{x_{2,k} + x_4}{x_{2,k} + x_3 + x_4 + x_5}
+         =  \frac{x_{2,k} + 34}{x_{2,k} + 72} .
+$$
+ 
+Using $p_0 = 0.5$ as a starting value and using a convergence tolerance of 
+$\epsilon = 10^{-7}$, the (scalar real) EM algorithm yields:
+\begin{verbatim}
+Epsilon:    1e-07
+Initial p: 0.5
+k        x2         p           
+1     25        0.608247   
+2     29.1502   0.624321   
+3     29.7373   0.626489   
+4     29.8159   0.626777   
+5     29.8263   0.626816   
+6     29.8277   0.626821   
+7     29.8279   0.626821   
+8     29.8279   0.626821   
+\end{verbatim}
+The algorithm converges at the specified tolerance after eight iterations.  In
+this case, the starting value of $0.5$ for $p$ was chosen simply because
+$0.5$
+lies exactly halfway between 0 and 1, which define the bounds for possible
+starting values.  A questioning user may well wonder what results would be
+obtained for different starting values and how the steps of convergence
+might
+change.  Interval analysis can be used to answer those questions. 
+
+\subsection{\textsc{Traditional EM with Intervals as Computing Elements}}
+The foregoing example can easily be 
+programmed to use intervals as the computing
+elements, though with a
+slight modification.  Because of the dependency problem, narrower interval
+enclosures of computed values are more likely to
+ be obtained if each variable appears only
+once in a calculation.  The iterates in the EM algorithm for this particular
+example are therefore written equivalently as
+$$
+x^I_{2,k} = \frac{125}{2 / p_k^I+1} \mbox{ \quad and \quad}
+p^I_k = 1 - \frac{38}{x_{2,k}^I + 72}.
+$$
+The convergence tolerance remains the same as before, but now $p_0^I =
+[\delta,1]$ where $\delta$ is a small machine number greater than zero.
+The scalar EM algorithm
+using interval arithmetic produces the following output:
+\begin{verbatim}
+Epsilon:   1e-07
+Initial p: [4.94066e-324,1]
+k        x2                     p             
+1   [0,41.6667]         [0.472222,0.665689]   
+2   [23.8764,31.2156]   [0.603656,0.631839]   
+3   [28.9812,30.0094]   [0.623692,0.627485]   
+4   [29.7144,29.852]    [0.626405,0.626910]   
+5   [29.8129,29.8311]   [0.626766,0.626833]   
+6   [29.8259,29.8284]   [0.626814,0.626823]   
+7   [29.8277,29.828]    [0.626821,0.626822]   
+8   [29.8279,29.828]    [0.626821,0.626822]   
+9   [29.8279,29.8279]   [0.626821,0.626822]   
+\end{verbatim}
+
+It is now easy to see that all scalar 
+starting values of $p_0$ in the scalar EM algorithm will lead to the
+same point of convergence, and furthermore the number of iterations to
+convergence is not highly dependent on the starting value of $p$.  The use
+of
+interval arithmetic has allowed the user to consider all possible values of
+the input parameter simultaneously.
+
+Although this particular example works quite well, it can be shown 
+that in a situation where two stationary points exist, the algorithm may 
+become stuck in a loop with each endpoint of an interval at a stationary
+point.  A more general technique is needed.
+
+%---------------------------------------------------------------------------
+\section{\bf AN INTERVAL EM ALGORITHM}\label{sec:interval_em}
+
+A method is now presented which uses certain properties of the EM
+algorithm and of interval arithmetic to locate all stationary points of
+the likelihood inside of a given region of the parameter space.
+Briefly, from the EM algorithm it is known that the $q$
+function has a gradient which is equal to the gradient of the
+log-likelihood at stationary points of the log-likelihood.  Using
+interval arithmetic, it is possible to derive interval vectors which 
+enclose values of the
+gradient of the $q$ function even over regions which do not contain
+a stationary point.
+
+The complete method is presented below,
+followed by a summary outline and additional comments.  
+Some numerical results are presented in
+Section~\ref{sec:examples}.
+
+\subsection{\textsc \bf Enclosing the Gradient of the Log-Likelihood}
+
+The fundamental task for the 
+method being proposed will be to eliminate regions of the parameter
+space where it can be determined that a stationary point of the likelihood
+does not exist.  This can be accomplished by finding a box which encloses
+the
+range of the gradient of the
+log-likelihood over a region.  
+If, for example, the interval enclosure of the set of all values of the
+gradient of the log-likelihood $\ell(\bfphi)$ over the box $\bfphi^I$,
+$$
+%\begin{equation}
+%\label{enclosure:likelihood}
+\left\{ \frac{\partial\ell(\bfphi)}{\partial\bfphi} 
+  \bigg|_{\bfphi = \bfphi_p} : \bfphi_p \in \bfphi^I \right\},
+%\nonumber
+%\end{equation}
+$$
+does not contain $0$ in one or more of its coordinates,
+then the gradient of the log-likelihood is nonzero over $\bfphi^I$ and 
+$\ell(\bfphi)$ does not contain a stationary point
+inside the box $\bfphi^I$.
+A more thorough explanation of how this is
+accomplished is now presented by deriving an interval
+enclosure for the gradient of the
+log-likelihood.  The first part of this derivation is similar to the
+development in \cite{DLR}.
+
+Denote the complete data (which includes missing values)
+by $\bfx$ and the observed (incomplete) data
+by $\bfy$, where $\bfy = \bfy(\bfx)$.  Let the density function
+of $\bfx$ be $f(\bfx|\bfphi)$, where $\bfphi \in \bfOmega$.  
+From this, the density function for $\bfy$ is 
+$$
+g(\bfy|\bfphi) = \int_{\bfx(\bfy)} f(\bfx|\bfphi)d\bfx.
+$$
+For simplicity and tractability, the maximization step would ideally be
+accomplished over $\bfphi$ in $\log f(\bfx|\bfphi)$.  However, since $\bfx$
+is
+unobservable, replace $\log f (\bfx|\bfphi)$ by its conditional
+expectation.  To
+that end, let $k(\bfx|\bfy,\bfphi) = f(\bfx|\bfphi) / g(\bfy|\bfphi)$
+be the conditional density of $\bfx$ given $\bfy$ and $\bfphi$.
+Using this, the log-likelihood can be written
+$$
+\ell(\bfphi) = \log g(\bfy|\bfphi) = \log f(\bfx|\bfphi) - 
+  \log k(\bfx|\bfy,\bfphi).
+$$
+Taking the conditional expectation (using $\bfphi_p$ as an 
+estimate for $\bfphi$), 
+$$
+\ell(\bfphi) = E_{\bfphi_p} \left[\log f(\bfx|\bfphi) | \bfy \right] - 
+  E_{\bfphi_p} \left[ \log k(\bfx|\bfy,\bfphi) | \bfy \right].
+$$
+For simplicity, this is often written 
+$\ell(\bfphi) = q(\bfphi|\bfphi_p) - h(\bfphi|\bfphi_p)$.
+To find values of $\bfphi \in \bfOmega$ which maximize 
+$\ell(\bfphi)$, solutions to
+$$ 
+\frac{\partial \ell(\bfphi)}{\partial \bfphi} = 
+\frac{\partial q(\bfphi | \bfphi_p)}{\partial \bfphi} - 
+\frac{\partial h(\bfphi | \bfphi_p)}{\partial \bfphi} = 0
+$$
+are needed.
+
+Now, it is easy to show that 
+$h(\bfphi | \bfphi_p) \leq h(\bfphi_p | \bfphi_p)$ for 
+any $\bfphi \in \bfOmega$; that is, $\bfphi_p$ maximizes $h(\bfphi | \bfphi_p)$
+with
+respect to $\bfphi$, and so 
+$\frac{\partial h(\bfphi | \bfphi_p)}{\partial \bfphi}
+  \bigg|_{\bfphi=\bfphi_p}=0$.  It is therefore sufficient when searching
+for
+maxima of $\ell(\bfphi)$ to limit consideration to 
+$ \frac{\partial q(\bfphi | \bfphi_p)}{\partial \bfphi}$, specifically, to 
+an enclosure of the gradient of the $q$ function over the box $\bfphi^I$,
+$$
+%\begin{equation}
+%\label{enclosure:grad_q}
+\left\{ \frac{\partial q(\bfphi | \bfphi_p)}{\partial\bfphi} 
+  \bigg|_{\bfphi=\bfphi_p} : \bfphi_p \in \bfphi^I \right\}
+%\end{equation}
+$$
+for arbitrary $\bfphi^I \in \bfOmega$.
+Let $Q'(\bfphi | \bfphi^I) =
+[\underline{Q}'(\bfphi | \bfphi^I), \overline{Q}'(\bfphi | \bfphi^I)]$
+be an interval extension of
+$\frac{\partial q(\bfphi|\bfphi_p)}{\partial\bfphi} $
+for interval $\bfphi^I$ and $\bfphi_p \in \bfphi^I$.  Note that 
+$Q'(\bfphi | \bfphi^I) $ is {\it not} 
+$\frac{\partial Q(\bfphi | \bfphi^I )}{\partial \bfphi}$ where  
+$Q(\bfphi | \bfphi^I)$ is the interval extension of $q(\bfphi | \bfphi_p)$.
+Also, let $Q'_2(\bfphi^I | \bfphi^I)$ be an interval function which contains
+$Q'(\bfphi | \bfphi^I)$ for all $\bfphi \in \bfphi^I$.
+
+Thus $Q'_2(\bfphi^I | \bfphi^I)$ is an interval-valued function which
+encloses the union of the ranges of a class of interval 
+functions $q(\bfphi|\bfphi^I)$
+indexed by $\bfphi \in \bfphi^I$.
+At each $\bfphi_p \in \bfphi^I$, the enclosure of the gradient of the
+log-likelihood can be obtained by 
+$$
+\frac{\partial \ell(\bfphi)}{\partial \bfphi} \bigg| _{\bfphi=\bfphi_p} 
+= \frac{\partial q(\bfphi|\bfphi_p)}{\partial \bfphi} \bigg|
+_{\bfphi=\bfphi_p} 
+\in
+[\underline{Q}'(\bfphi_p | \bfphi^I), \overline{Q}'(\bfphi_p | \bfphi^I)]
+$$
+and
+$$
+\left\{ \frac{\partial\ell(\bfphi)}{\partial\bfphi} 
+  \bigg|_{\bfphi = \bfphi_p} : \bfphi_p \in \bfphi^I \right\}
+\subset Q'_2(\bfphi^I | \bfphi^I).
+$$
+If $0$ is not contained in  $Q'_2(\bfphi^I | \bfphi^I)$,
+then the box 
+$\bfphi^I$ cannot contain a local maximizer of $\ell(\bfphi)$ and may
+therefore
+be excluded from further consideration.
+
+After a user of this method specifies an initial box $\bfphi^I
+\in \bfOmega$, locating optima of the log-likelihood proceeds by
+conducting a bisection search by 
+dividing $\bfphi^I$ into successively smaller boxes and evaluating the
+enclosure of the gradient of the log-likelihood over each box.  Boxes which
+do not contain a stationary point are discarded.  The initial box $\bfphi^I$
+will frequently be quite large so as to (we hope) enclose all stationary
+points of $\ell(\bfphi)$.
+At a certain
+point in this process, 
+typically when the box size becomes smaller than a specified size, 
+the subdividing stops and a list, $\mathcal{G}$,  
+of boxes from the search,
+is output along with the enclosure of the gradient
+and the enclosure of the range of $q$ functions over each box.  These boxes
+contain all the stationary points of $\ell(\bfphi)$ that exist within the
+initial interval box $\bfphi^I$.
+
+\subsection{\textsc \bf Definitions for Interval EM}
+
+In this section an interval EM algorithm is presented.
+A few necessary definitions are stated and then utilized in the interval EM
+method being presented.
+
+{\bf Definition 1}.  An {\it interval EM algorithm}
+on an interval vector $\bfPhi$ in a parameter space $\bfOmega$ is an
+iterative
+method which employs a sequences of intervals
+$\bfphi^I_0 \rightarrow  \bfphi^I_1 \rightarrow  \cdots \bfphi^I_p
+\rightarrow$
+with respect to interval enclosures 
+$Q(\bfphi | {\bfphi}^I_0)$, $Q(\bfphi | {\bfphi}^I_1), \cdots,
+Q(\bfphi | {\bfphi}^I_p)$
+of sets of functions 
+$q(\bfphi | \bfphi_0)$, $q(\bfphi | \bfphi_1), \cdots, 
+q(\bfphi | \bfphi_p)$ so that 
+$q(\bfphi | \bfphi_p) \in Q(\bfphi | \bfphi^I_p)$ where 
+$\bfphi_p \in \bfphi^I_p \subset \bfPhi$
+for each $p$.  The interval $\bfphi^I_{p+1}$ contains at least one value of
+$\bfphi_{p+1}$ which maximizes a $q(\bfphi | \bfphi_p)$ for at least one
+$ \bfphi_p \in \bfphi^I_p \subset \bfPhi$.
+Moving from $\bfphi_p^I$ to $\bfphi_{p+1}^I$ 
+is referred to
+as an {\it interval EM step}.
+
+{\bf Definition 2}.   An {\it interval GEM algorithm}
+is an interval EM algorithm except instead
+of maximizing $q(\bfphi|\bfphi^I_p)$ with respect to $\bfphi$, the interval 
+$\bfphi^I_{p+1}$ contains
+as least one value $\bfphi_{p+1}$ such that 
+$q(\bfphi_{p+1} | \bfphi_p ) \geq q(\bfphi_p |\bfphi_p )$,
+where $\bfphi_{p+1} \in \bfphi^I_{p+1}$,
+$\bfphi_p \in \bfphi^I_p$.  Moving from $\bfphi_p^I$ to $\bfphi_{p+1}^I$ 
+is referred to
+as an {\it interval GEM step}.
+
+The methods described in this section 
+may be more easily understood by referring to
+Figure~\ref{EM:step}, which graphically illustrates an interval EM step in a
+hypothetical one-dimensional case. 
+In Figure~\ref{EM:step}, the dotted lines
+$q(\bfphi|\bfphi_i)$ and $q(\bfphi|\bfphi_j)$ are
+two separate scalar $q$ functions that might be encountered in different
+iterations of a scalar EM algorithm.  The solid lines 
+$\protect\underline{Q}(\phi|\phi^I_k)$ and 
+$\protect\overline{Q}(\phi|\phi^I_k)$ denote the extent of 
+an interval-valued function $Q(\bfphi|\bfphi^I_k)$ 
+which encloses all the scalar
+$q$ functions $q(\bfphi|\bfphi_i)$ and $q(\bfphi|\bfphi_j)$ 
+indexed by $\bfphi_i \in \bfphi^I_k$, $\bfphi_j \in \bfphi^I_k$.
+Finally, the vertical line segments $Q(\bfphi_{k+1,1}^I|\bfphi_{k+1,1}^I)$
+and 
+$Q(\bfphi_{k+1,2}^I|\bfphi_{k+1,2}^I)$ 
+denote enclosures of $Q(\bfphi|\bfphi^I)$ 
+evaluated for $\bfphi \in \bfphi_{k+1,1}^I$ and $\bfphi \in
+\bfphi_{k+1,2}^I$,
+respectively.
+
+\begin{figure}[ht]
+\begin{center}
+\begin{picture}(300,220)
+%Vertical line
+\put(0,20){\line(0,1){200}}
+
+%Horizontal line
+\put(0,20){\line(1,0){200}}
+%Put phi along horizontal axis
+\put(205,20){${\bfphi}$}
+
+%Upper Q enclosure
+\qbezier(10,170)(100,200)(190,170)
+\put(205,170){$\overline{Q}(\bfphi|\bfphi^I_k)$}
+
+%Example upper Q
+\qbezier[100](10,120)(50,200)(190,130)
+\put(205,130){$q(\bfphi|\bfphi_i)$}
+
+%Example lower Q
+\qbezier[100](10,40)(125,110)(190,60)
+\put(205,60){$q(\bfphi|\bfphi_j)$}
+
+%Lower Q enclosure
+\qbezier(10,30)(160,80)(190,50)
+\put(205,40){$\underline{Q}(\bfphi|\bfphi^I_k)$}
+
+% Phi_ k-1
+\put(60,18){\line(0,-1){5}}
+\put(60,16){\line(1,0){100}}
+\put(160,18){\line(0,-1){5}}
+\put(105,3){$\bfphi_{k}^I$}
+
+% Phi_k1 
+\put(60,22){\line(0,1){5}}
+\put(60,25){\line(1,0){50}}
+\put(110,22){\line(0,1){5}}
+\put(70,30){$\bfphi_{k+1,1}^I$}
+
+% Q(phi_k1)
+\put(60,45){\line(1,0){50}}  
+\put(85,45){\line(0,1){140}}
+\put(60,185){\line(1,0){50}} %
+\put(3,100){$Q(\bfphi_{k+1,1}^I|\bfphi_{k+1,1}^I)$}
+
+% Phi_k2
+\put(110,22){\line(0,1){5}}
+\put(110,25){\line(1,0){50}}
+\put(160,22){\line(0,1){5}}
+\put(120,30){$\bfphi_{k+1,2}^I$}
+
+%Q(phi_k2)
+\put(110,55){\line(1,0){50}}
+\put(135,55){\line(0,1){130}}
+\put(110,185){\line(1,0){50}} %
+\put(145,100){$Q(\bfphi_{k+1,2}^I|\bfphi_{k+1,2}^I)$}
+
+\end{picture}
+\caption{One interval EM step. $\overline{Q}(\phi|\phi^I_k)$ 
+and  $\protect\underline{Q}(\phi|\phi^I_k)$ bound the extent
+of the interval-valued function
+$Q(\phi|\phi^I_k)$, while $q(\phi|\phi_i)$ and 
+$q(\phi|\phi_j)$ are examples of two of the scalar functions contained
+within the interval function.\label{EM:step}}
+\end{center}
+\end{figure}
+
+A fundamental difference between the interval EM algorithm and the scalar EM
+algorithm  is that the interval EM algorithm combines the E-step and M-step,
+and deals directly with the problem of finding the stationary points.  It is
+iterative in the sense that boxes are examined, cut in half, and
+re-examined; not in the sense of alternating between the E and M steps.
+
+%--------------------------------------------------------------------------
+\subsection{\textsc \bf Full Bisection Search}
+
+The bisection algorithm starts by putting an initial box $\bfphi_0^I$ in a
+list of boxes $\mathcal{G}$.  The method proceeds by 
+simply bisecting boxes from $\mathcal{G}$
+until no boxes are left or until all boxes have reached a certain
+size.  Let $m$ be the dimension of $\bfphi$ and initialize $i := 1$.
+Proceed by removing and bisecting each box of $\mathcal{G}$ in the $i^{th}$
+coordinate.  Discard any boxes which do not contain $0$ in at least
+one direction of the enclosure of the gradient.  Return all
+remaining boxes to $\mathcal{G}$ and increase $i$ by 1, resetting $i := 1$
+when
+$i > m$.
+Repeat as necessary until the diameter of every box is small.  If at
+any point $\mathcal{G}$ becomes empty, print a message stating that
+no stationary points were contained in the initial region $\bfphi^I_0$.
+
+The bisection algorithm differs from traditional EM in that there
+are no expectation and maximization steps.  The only use of the EM
+theory is to obtain an enclosure for the gradient of the
+log-likelihood of $\bfphi$.  Still, the bisection search can in some way be
+viewed as many simultaneous interval GEM algorithms.  In making an interval
+GEM
+step from
+$\bfphi_k^I$ to $\bfphi_{k+1,1}^I$ and from $\bfphi_k^I$ 
+to $\bfphi_{k+1,2}^I$, there will be a 
+nondecreasing change in the
+lower bound of the enclosure of the $q$ functions; that is,
+$\underline{Q}(\bfphi_k^I|\bfphi_k^I) 
+\leq \underline{Q}(\bfphi^I_{k+1,i}|\bfphi^I_{k+1,i})$ 
+for $i =1,2$. 
+The method is now summarized in the following algorithm.
+
+$\bullet$ ALGORITHM: Bisection Interval EM Search
+\begin{itemize}
+\item[] Input an initial interval box $\bfphi^I_0$ and place it as the only
+element of the list $\mathcal{G}$.
+\item[] i := 0
+\item[] REPEAT
+  \begin{itemize}
+  \item[]  i := (i + 1) MOD m
+  \item[]  FOR j = 1 TO LENGTH($\mathcal{G}$)
+    \begin{itemize}
+    \item[] Remove the first box from $\mathcal{G}$.  Call it $\bfphi^I$
+    \item[] Bisect $\bfphi^I$ along the $i^{th}$ direction, creating
+$\bfphi^I_1$ and $\bfphi^I_2$
+    \item[] If $0 \in Q'_2(\bfphi^I_k|\bfphi^I_k)$, append $\bfphi^I_k$ to
+$\mathcal{G}$, $k=1,2$
+    \end{itemize}
+  \item[] NEXT
+  \end{itemize}
+\item[] UNTIL  $\mathcal{G}$ is empty or maximum diameter of boxes $\leq
+\epsilon$
+\end{itemize}
+
+The method described above will not, of course, find any global optima which
+lie outside of the initial box $\bfphi_0^I \subset \bfOmega$.  
+In practice this is often not of
+concern, primarily because the observed data places practical limitations on
+the portion of the parameter space of interest.
+Also, in a manner similar to that observed by \cite{HansenBook}, 
+it is often possible to make the parameter space exceedingly large without
+significantly increasing the computing time to search for global optima.
+This
+can happen when the stationary points are clustered in a small portion of
+the
+parameter space (relative to the initial box).  When the initial box is
+bisected, it will often be possible to discard one of the resulting halves.
+With each iteration of the interval EM algorithm, the parameter space is
+halved
+and the length of the list $\mathcal{G}$ remains the same.  The univariate
+$t$
+example in Section~\ref{sec:examples} illustrates this behavior.
+
+Because the algorithm uses intervals instead of real numbers, measurement
+error in data and floating-point approximations can immediately be
+incorporated.  For example, one might use $\pi^I=[3.14,3.15]$ to indicate
+uncertainty in known constants.  Even more useful is the ability to
+represent
+data as intervals, e.g. $x^I_i = [x_i - \delta, x_i + \delta]$, where
+$x_i$ is the observed value and $\delta$ is a bound on the measurement
+error.
+
+
+The speed of the algorithm depends on the complexity of
+the data under consideration.  Let $m$ be the dimension of $\bfphi$.
+Bisection of just one box from the list $\mathcal{G}$ has the
+potential to create $2^m$ additional boxes that will be appended to
+$\mathcal{G}$.  This might happen in situations where a region
+contains many stationary points or where the log-likelihood is
+relatively flat and the gradient is near zero.  Since interval
+arithmetic sometimes calculates an interval wider than optimal, it
+may be the case that the gradient is nonzero in every direction, but
+the enclosure of the gradient contains zero in at least one
+direction.  If some combination of high dimensionality and/or a fairly
+flat likelihood occurs, the length of $\mathcal{G}$ can grow
+exponentially, a situation in which the efficiency of the computations
+becomes important.  As indicated by \cite{Knu94}, interval calculations in
+the
+PROFIL package require slightly more than twice as much time as ordinary
+floating point calculations (using a standard C compiler).  The examples in
+this article each required less than one second of real time on a DEC Alpha
+400
+workstation. 
+
+%--------------------------------------------------------------------------
+
+\section{\bf EXAMPLES}\label{sec:examples}
+
+Several examples are now presented to illustrate use of
+the interval EM algorithm described above.
+Note that the following examples each have an algebraic, real expression for
+$q(\bfphi | \bfphi_k)$.  This is consistent with traditional EM notation. 
+Though not shown, a person would determine an expression for the
+gradient
+of this function with respect to $\bfphi$, $q'(\bfphi | \bfphi_k)$, and then
+express $q'(\bfphi_k | \bfphi_k)$ in as simple a way as possible.  This is
+coded in the program as $Q'_2(\bfphi_k | \bfphi_k)$.
+
+
+When numerical results are reported, sub/superscript notation will sometimes
+be used to simplify the representation of an interval, e.g. $[2.33,2.35] =
+2.3_3^5$.
+
+\subsection{\textsc \bf Multinomial (continued)}
+
+For the multinomial example in Section~\ref{subsec:trademint}, 
+it can be shown that
+\begin{equation} \label{multinomial:q}
+q(p | p_k) = k(\bfx) +
+\left[125\frac{\frac{p_k}{4}}{\frac{1}{2}+\frac{p_k}{4}}+x_5
+\right]\frac{1}{p} - (x_3 + x_4) \frac{1}{1-p}
+\end{equation}
+where $k(\bfx)$ does not depend on $p$ and can be ignored in the maximization
+step.  Figure~\ref{mult:qfuns} shows a plot of the corresponding interval
+extension, $Q(p|p_k^I)$.  An accurate interpretation of this interval-valued
+function can be obtained 
+in this case by actually overlaying plots of $q(p|p_k)$
+for various $p \in p_k^I$, in this case $p=0.1(0.1)0.9$.
+\begin{figure}[ht]
+\begin{center}
+\resizebox{11 cm}{10 cm} {\includegraphics{mult_qfun}}
+\caption{Plot of $Q(p|p_0^I)$ versus $p$ for $p_0^I=[0.1,0.9]$.  Solid lines
+denote the extent of the interval-valued function $Q(p|p_0^I)$.
+\label{mult:qfuns}}
+\end{center}
+\end{figure}
+
+The initial interval selected
+is $p_0^I = [.00001,.99999]$.  Although a wider interval can
+be used, the maximum
+likelihood estimate of $p$ is certainly contained in $[.00001,.99999]$.
+Furthermore, the values of $p=0$ and $p=1$ are excluded by the gradient of 
+Equation
+(\ref{multinomial:q}).  If the user selects an inappropriate value 
+for the initial
+interval, such as  
+$[0.1,0.2]$, then the program terminates with the message:
+\begin{verbatim}
+Gradient of Q(Phi|Phi_k) = ([152.262,411.414])
+Gradient of likelihood does not contain zero.
+No stationary point in ([0.1,0.2])
+\end{verbatim}
+
+The bisection algorithm applied to this problem using an initial interval
+$p_0^I$
+produces a list
+$\mathcal{G}$ which contains two interval boxes,
+$$y_1 = 0.626821497870982_3^4$$
+$$y_2 = 0.626821497870982_4^5.$$
+Any stationary points of the log-likelihood are guaranteed to be
+contained in the hull of the boxes in the list $\mathcal{G}$.  If a
+scalar estimate is desired, the midpoint of the hull can be given:
+$\hat{p} = 0.6268214978709824$.
+
+%--------------------------------------------------------------------------
+\subsection{\textsc \bf Univariate t}
+\cite{McLachlan:Book} give an example by \cite{Arslan} where the EM
+algorithm
+can converge to a local {\it minimum}.  
+A $p$-dimensional random variable ${\bf W}$ is 
+said to have a multivariate $t$-distribution $t_p(\bfmu, \Sigma, \nu)$ with
+location $\bfmu$, positive definite inner product matrix $\Sigma$, and
+degrees
+of freedom $\nu$ when the density of ${\bf W}$ is given by
+\begin{equation}
+f_p(\bfw | \bfmu, \Sigma, \nu) =
+\frac{\Gamma(\frac{p+\nu}{2})|\Sigma|^{-1/2}}
+  {(\pi \nu)^{p/2} \Gamma(\frac{\nu}{2}) 
+  \{ 1 + (\bfw-\bfmu)^T\Sigma^{-1}(\bfw-\bfmu) / \nu\}^{(p+\nu)/2}}.
+\end{equation}
+The example considered is a univariate case of the $t$-distribution where
+$\nu=0.05$, $\Sigma=1$, and $\mu$ is taken as unknown.  The observed data is
+${\bf w}=(-20,1,2,3)$.  Ignoring additive and multiplicative constants, the
+log-likelihood is
+$\log L(\mu) \propto -\sum_i \log \{1+20(w_i - \mu)\}$.  A plot showing the
+shape of this log-likelihood appears in Figure~\ref{unitlike}.
+\begin{figure}[ht]
+\begin{center}
+\resizebox{11 cm}{10 cm} {\includegraphics{uni_t}}
+\caption{Plot of log-likelihood function log $L(\mu)$ versus $\mu$.  Local 
+maxima occur at $\mu_1= -19.993$, $\mu_2= 1.086$, $\mu_3=1.997$, 
+and $\mu_4=2.906$\label{unitlike} }
+\end{center}
+\end{figure}
+
+The function has seven stationary points.  The most interesting are the
+local maxima at
+$\mu_2= 1.086$, $\mu_3=1.997$, and $\mu_4=2.906$.  In this complete-data
+problem it is possible to graph the log-likelihood and visually choose
+starting values that will cause a scalar EM algorithm to converge to each 
+of the local
+maxima, {\it and even to a local minimum}.  However, the domain of
+attraction
+for each stationary point is not necessarily a contiguous region.
+
+Using $\mu_0 = [-1000,1000]$, the bisection algorithm completes 59
+iterations (bisections), during which the length of $\mathcal{G}$ is
+scarcely longer than the 20 boxes at the final step.  
+These boxes occur in distinct groupings
+around each of the seven stationary points.  Although the algorithm
+actually outputs the list of boxes from $\mathcal{G}$, for brevity the hull
+of each group of boxes and the hull of the associated enclosures of
+the $q$ functions are given in Table~\ref{unit:table}.
+\renewcommand{\arraystretch}{1.4}
+\begin{table}[!ht]
+\caption{\sffamily Enclosures of the stationary points for the univariate $t$
+example \label{unit:table}}
+\begin{center}
+\begin{tabular}{ccc}
+\hline\hline
+$i$ & $\bfphi_{S_i}$ & $Q(\bfphi_{S_i}|\bfphi_{S_i})$ \\ \hline
+$1$ & $ -19.993164608871_{30}^{29} $  & $ -1.57532666279595_{7}^{4} $ \\
+$2$ & $ -14.5161774794253_{2}^{0} $  & $ -2.098837787645_{302}^{297} $ \\
+$3$ & $ 1.08616780631075_{0}^{7} $  & $ -1.606093870388_{426}^{397} $ \\
+$4$ & $ 1.3731761015634_{18}^{32} $  & $ -1.89224275084_{3016}^{2981} $ \\
+$5$ & $ 1.9975126089118_{17}^{24} $  & $ -1.525009886703_{402}^{386} $ \\
+$6$ & $ 2.6468546770426_{20}^{35} $  & $ -1.884158362286_{208}^{176} $ \\
+$7$ & $ 2.9056308944679_{75}^{85} $  & $ -1.617024174245_{707}^{677} $ \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1.00}
+
+Looking at this table, the nature of each stationary point is not
+immediately clear.  Since this is a univariate case, it would be
+possible to evaluate the gradient on either side of each
+$\bfphi_{S_i}$ and thereby determine which stationary points are
+local maxima and which are local minima.  However, it is immediately clear
+from the table that $\bfphi_{S_5}$ gives the largest value of 
+$Q(\bfphi_{S_i}|\bfphi_{S_i})$ and contains the global maximum of the
+log-likelihood as displayed by Figure~\ref{unitlike}.
+
+This suggests one possible way that the algorithm could be accelerated.
+Suppose that only the stationary point $\bfphi$ with the largest value of 
+$q(\bfphi|\bfphi)$ (among all stationary points) was of interest.  Let
+$\bfphi_j^I$ and $\bfphi_k^I$ be boxes (remaining to be processed) on the
+list
+$\mathcal{G}$.
+If $\overline{Q}(\bfphi_k^I | \bfphi_k^I) < 
+  \underline{Q}(\bfphi_j^I | \bfphi_j^I)$, then $\bfphi_k^I$ could be
+omitted
+from further consideration.
+
+%--------------------------------------------------------------------------
+\subsection{\textsc \bf Binomial-Poisson Mixture}
+This example from \cite{Thisted} presents a simple
+multivariate-parameter example dealing with the number
+of children per widow in a pension fund.
+\begin{center}
+\begin{tabular}{l|c|c|c|c|c|c|c}
+Children per widow, $i$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 \\ \hline
+Number of widows, $n_i$ & 3062 & 587 & 284 & 103 & 33 & 4 & 2
+\end{tabular}
+\end{center}
+%
+Since the number of widows with no children is larger than would be expected
+for a Poisson distribution, it is assumed that there are actually two
+underlying populations.  The number of children, $Y$, for a widow is modeled
+as:
+\begin{equation}
+Y \sim \left\{ \begin{array}{ll}
+0 & \mbox{with probability } \xi \\
+Poisson(\lambda) & \mbox{with probability } 1-\xi.
+\end{array}\right.
+\end{equation}
+With $\bfphi=(\lambda,\xi)$, the function to be maximized in the M-step is:
+\begin{eqnarray}
+\lefteqn{
+q(\bfphi|\bfphi_k) = \frac{n_0 \xi_k}{\xi_k + (1-\xi_k)\exp(-\lambda_k)}
+\left\{ \log\xi - \log(1-\xi)+\lambda \right\} + } \nonumber \\
+ & & \hspace{1in} N \left\{ \log (1-\xi) - \lambda \right\}
++ \sum_{i=1}^6 \left\{ i n_i \log \lambda - n_i \log i! \right\}.
+\end{eqnarray}
+Based on a visual examination of the data, the starting values of 
+$$\bfphi_0 = (\lambda_0^I, \xi_0^I) = ([0.001,10],[0.001,0.999])$$ 
+were chosen as being certain to contain the true parameter values.
+
+Applying the Bisection search, 
+after 52 iterations of bisecting $\bfphi$ in both directions, the list
+$\mathcal{G}$ contains 82 boxes, the first and last of which are:
+$$y_1 = (1.0378390789897_{57}^{60}, 0.61505669757312_{12}^{14})$$
+$$y_{82} = (1.0378390789897_{77}^{80}, 0.61505669757312_{88}^{90}).$$
+The hull of the boxes on this list is:
+$\bfphi_{S_1} = (1.0373890789897_{57}^{80},  0.61505669757312_{12}^{90})$.
+
+In this problem, what is important is not the extremely narrow and
+high degree of accuracy of $\bfphi_{S_1}$, but the guarantee
+that considered over the initial parameter space $\bfphi_0$, the
+only stationary points of the log-likelihood (if any exist)
+are guaranteed to be contained in the interval box $\bfphi_{S_1}$.
+Moreover, if a scalar EM algorithm converges to some stationary point in
+$\bfphi_0$, that point will be inside $\bfphi_{S_1}$.
+
+\subsection{\textsc \bf Genetic example}
+
+This example is also taken from \cite{McLachlan:Book}.
+Suppose there are 435 observations from a multinomial distribution
+as given in Table~\ref{genetic:table}.
+\begin{table}[!ht]
+\caption{\sffamily Distribution of data in the genetic example 
+\label{genetic:table}}
+\begin{center}
+\begin{tabular}{ccc}
+\hline\hline
+&     Cell         &  Observed \\
+Cell & Probability & Frequency \\ \hline
+O  & $r^2$ & $n_{\rm O} = 176$ \\
+A  & $p^2 + 2pr$ & $n_{\rm A} = 182$ \\
+B  & $q^2 + 2qr$ & $n_{\rm B} = 60$ \\
+AB & $2pq$ & $n_{\rm AB} = 17$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+where $r= 1-p-q$.  The observed data are the cell frequencies of blood types
+$(n_{\rm O}, n_{\rm A}, n_{\rm B}, n_{AB})$ believed to be determined (genetically) 
+by the unknown parameters $\bfphi = (p,q)$.
+As in the multinomial example above, a natural way to introduce
+missing data is to split the A and B cells across the sum in the
+cell probability.  For this model, the $q$ function is
+\begin{eqnarray}
+\lefteqn{ q(\bfphi|\bfphi_k) = \left(\frac{182}{1+2(1-p_k-q_k)/p_k} +
+199\right) \log(p) + } \nonumber \\ \nonumber
+& & \left(\frac{60}{1+2(1-p_k-q_k)/q_k} + 77\right) \log(q) + \\
+& &  \left( 594 - \frac{182}{1+2(1-p_k-q_k)/p_k} -
+\frac{60}{1+2(1-p_k-q_k)/q_k}\right) \log(1-p-q).
+\end{eqnarray}
+
+It is not always possible to search the entire portion of the
+parameter space with one application of the bisection algorithm.
+In this example, certain combinations of $p^I$ and $q^I$ cause a
+division by zero error.  Specifically, the gradient does not exist along the
+lines $p=0$, $q=0$, $1-p-q=0$, $q=2-2p$, and $2q=2-p$.  The software
+can be written to catch {\it division by zero} errors and mark a box as
+containing such until further subdivision occurs.  Alternatively, the user 
+can specify a smaller initial region.  
+The only stationary point located inside 
+$\bfphi_0 = (p_0,q_0) =([0.00001,0.45],[0.00001,0.45]$ is 
+found to be located inside
+$\bfphi_S= (0.2644443138466_{694}^{706} , 0.09316881181568_{122}^{200}$).
+
+%--------------------------------------------------------------------------
+%
+\section{\bf CONCLUSIONS}\label{sec:conclusions}
+
+Interval analysis first gained noticeable development in the 1960s by
+R. E. Moore.   Two monographs suitable for an
+introduction to the subject are \cite{Moore66,Moore79}.  Interval analysis has
+a fairly extensive 
+literature in some areas, e.g. global optimization, but has seen little
+development in statistical settings.  This article takes a step toward 
+expanding the current state of knowledge by 
+using interval analysis together with ideas
+from the EM algorithm.  The resulting method is capable of finding multiple
+stationary points of a log-likelihood to a high degree of accuracy.  The EM
+algorithm cannot be relied upon to do this.  Unlike
+other algorithms for optimization, the method retains the ability of the EM
+algorithm to handle missing-data problems.
+\linebreak
+
+\begin{center}
+{\bf ACKNOWLEDGEMENTS}
+\end{center}
+
+{\small The authors thank the referees and associate editor for helpful 
+comments which led to improvements in the article. 
+This work was partially supported by National Science Foundation
+grant DMS-9500831.}
+
+\begin{center}
+{\it [Received January 1999. Revised October 1999.]}
+\end{center}
+
+\setlength{\bibsep}{4pt} % Reduce the spacing between bib items
+\bibliographystyle{apalike}
+
+\begin{thebibliography}{}
+\small
+
+\bibitem[Arslan et~al., 1993]{Arslan}
+Arslan, O., Constable, P. D.~L., and Kent, J.~T. (1993).
+\newblock Domains of {C}onvergence for the {EM} {A}lgorithm: A {C}autionary
+  {T}ale in a {L}ocation {E}stimation {P}roblem.
+\newblock {\em Statistical Computing}, 3:103--108.
+\par
+
+\bibitem[Dempster et~al., 1977]{DLR}
+Dempster, A.~P., Laird, N.~M., and Rubin, D.~B. (1977).
+\newblock Maximum {L}ikelihood {F}rom {I}ncomplete {D}ata via the {EM}
+  {A}lgorithm.
+\newblock {\em Journal of the Royal Statistical Society. Series B.
+  Methodological}, 39:1--22.
+
+\bibitem[Hansen, 1992]{HansenBook}
+Hansen, E. (1992).
+\newblock {\em Global {O}ptimization {U}sing {I}nterval {A}nalysis}.
+\newblock Marcel Dekker Inc., New York.
+
+\bibitem[Hansen, 1997]{Hansen:Sharp}
+--------- (1997).
+\newblock Sharpness in {I}nterval {C}omputations.
+\newblock {\em Reliable Computing}, 3:17--29.
+
+\bibitem[Kearfott, 1996]{KearfottBook}
+Kearfott, R.~B. (1996).
+\newblock {\em Rigorous {G}lobal {S}earch: {C}ontinuous {P}roblems}.
+\newblock Kluwer Academic Publishers.
+
+\bibitem[{Kn{\"u}ppel}, 1993]{Knu93b}
+{Kn\"uppel}, O. (1993).
+\newblock {PROFIL} -- {P}rogrammer's {R}untime {O}ptimized {F}ast {I}nterval
+  {L}ibrary.
+\newblock Technical Report 93.4, Informationstechnik, Technische Uni.
+  Hamburg--Harburg.
+
+\bibitem[{Kn\"uppel}, 1994]{Knu94}
+--------- (1994).
+\newblock {PROFIL/BIAS} - {A} {F}ast {I}nterval {L}ibrary.
+\newblock {\em Computing}, 53:277--287.
+
+\bibitem[McLachlan and Krishnan, 1997]{McLachlan:Book}
+McLachlan, G.~J. and Krishnan, T. (1997).
+\newblock {\em The {EM} {A}lgorithm and {E}xtensions}.
+\newblock John Wiley \& Sons.
+
+\bibitem[Moore, 1966]{Moore66}
+Moore, R.~E. (1966).
+\newblock {\em {I}nterval {A}nalysis}.
+\newblock Prentice-Hall, Englewood Cliffs, N.J.
+
+\bibitem[Moore, 1979]{Moore79}
+Moore, R.~E. (1979).
+\newblock {\em Methods and {A}pplications of {I}nterval {A}nalysis}.
+\newblock SIAM, Philadelphia.
+
+\bibitem[Thisted, 1988]{Thisted}
+Thisted, R.~A. (1988).
+\newblock {\em Elements of {S}tatistical {C}omputing}.
+\newblock Chapman and Hall.
+
+\bibitem[Wu, 1982]{WuEM}
+ Wu, C. F.~J. (1982).
+\newblock On the {C}onvergence {P}roperties of the {EM} {A}lgorithm.
+\newblock {\em The {A}nnals of {S}tatistics}, 11(1):95--103.
+
+\end{thebibliography}
+
+\end{document}

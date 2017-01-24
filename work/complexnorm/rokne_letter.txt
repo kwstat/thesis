@@ -1,0 +1,164 @@
+From: rokne@cpsc.ucalgary.ca (Jon Rokne)
+Date: Wed, 23 Apr 1997 08:00:22 -0600 (MDT)
+
+Subject: Re: Question about Complex Interval Arithmetic.
+
+
+
+
+Dear Mr. Wright,
+
+First of all here are references to further work on complex
+arithmetic:
+
+\bibitem{Hauenschild(1973)}
+Hauenschild, M.:
+{\em \"{U}ber Kreisscheibenarithmetik
+und komplexe Intervallrechnung.} (Diplomarbeit)
+Univ. Bochum (1973)
+
+\bibitem{Hauenschild(1973a)}
+Hauenschild, M.:
+{\em Ans\"{a}tze zur Komplexen Kreisarithmetik.}
+Arbeitsbericht des Rechenzentrums Nr. 7304,
+Universit\"{a}t Bochum (1973)
+
+\bibitem{Hauenschild(1974)}
+Hauenschild, M.:
+{\em Arithmetiken f\"{u}r komplexe Kreise.}
+Computing 13, 299-312 (1974)
+
+\bibitem{Hauenschild(1980)}
+Hauenschild, M.:
+{\em Extended Circular Arithmetic, Problems and Results.}
+'Interval Mathematics 1980', ed. by K. Nickel
+Academic Press, New York-London-Toronto,
+367-376 (1980)
+
+\bibitem{Krier(1973)}
+Krier, N.:
+{\em Komplexe Kreisarithmetik.}
+Dissertation, Interner Bericht des Inst. F. Prakt.
+Math. 73/2, Universit\"{a}t Karlsruhe  (1973)
+
+\bibitem{Krier(1974)}
+Krier, N.:
+{\em Komplexe Kreisarithmetik.}
+Z. Angew. Math. Mech. 54, T225-T226 (1974)
+
+\bibitem{Nickel(1979)}
+Nickel, K.:
+{\em Arithmetic of Complex Sets.}
+MRC Technical Summary Report \# 2009
+University of Wisconsin, Madison (1979)
+     Published in:
+     Computing 24, 97-105 (1980)
+
+\bibitem{Boche(1966)}
+Boche, R.E.:
+{\em Complex Interval Arithmetic with some Applications.}
+Technical Report \# 4-22-66-1
+Lockheed Missiles and Space Co.,
+Palo Alto, Cal. (1966)
+
+\bibitem{Caplat(1981)}
+Caplat, G.:
+{\em Note sur la Representation
+D'Intervalles Complexes.}
+Freiburger Intervall-Ber. 81/6, 43-47 (1981)
+
+\bibitem{Klatte-Ullrich(1980a)}
+Klatte, R.
+Ullrich, Ch.:
+{\em Complex Sector Arithmetic.}
+Computing 24, 139-148 (1980)
+
+
+
+Secondly here is the routine div1q as I had it in my files:
+
+                    srcftn.archive::div1q.fortran 08/20/79  1900.1 mdt Mon
+
+      subroutine div1q(x1,x2,y1,y2,x1d,x2d,y1d,y2d)
+c the subroutine div1q takes care of the division in the first and in
+c the first and second quadrant
+      call fimul(x1,x1,x1,x1,au1,au2,idum)
+      call fimul(y1,y1,y1,y1,au3,au4,idum)
+      call fiadd(au1,au2,au3,au4,au5,au6,idum)
+      call fidiv(x1,x1,au5,au6,ak11,ak12,idum)
+      call fidiv(y1,y1,au5,au6,al11,al12,idum)
+      call fimul(x2,x2,x2,x2,au7,au8,idum)
+      call fimul(y2,y2,y2,y2,au9,au10,idum)
+      call fiadd(au7,au8,au3,au4,au11,au12,idum)
+      call fidiv(x2,x2,au11,au12,ak21,ak22,idum)
+      call fidiv(y1,y1,au11,au12,al21,al22,idum)
+      call fiadd(au7,au8,au9,au10,au5,au6,idum)
+      call fidiv(x2,x2,au5,au6,ak31,ak32,idum)
+      call fidiv(y2,y2,au5,au6,al31,al32,idum)
+      call fiadd(au1,au2,au9,au10,au5,au6,idum)
+      call fidiv(x1,x1,au5,au6,ak41,ak42,idum)
+      call fidiv(y2,y2,au5,au6,al41,al42,idum)
+      a1=amin1(ak11,ak21,ak31,ak41)
+      a2=amax1(ak12,ak22,ak32,ak42)
+      b1=amin1(al11,al21,al31,al41)
+      b2=amax1(al12,al22,al32,al42)
+      x1d=a1
+      if(.not.((y1.gt.x2).or.((x1.gt.y2).and.(y1.gt.0.0))))go to 10
+      x2d=a2
+      y1d=-b2
+      y2d=-b1
+      return
+10    continue
+      if(.not.(((y2.ge.x2).and.(x2.ge.y1).and.(y1.ge.x1)).or.((x2.gt.y2)
+     &.and.(y1.ge.x1))))go to 20
+      x2d=amax1(a2,fpdiv(.1e1,y1)/.2e1)
+      y1d=-b2
+      y2d=-b1
+      return
+20    p1=fpdiv(.1e1,x1)
+      q1=fpdiv(p1,.2e1)
+      if(y1.le.0.0)go to 30
+      x2d=a2
+      y1d=amin1(-b2,-q1)
+      y2d=-b1
+      return
+30    x2d=p1
+      if(abs(y1).ge.x1)go to 40
+      y2d=-b1
+      go to 50
+40    y2d=q1
+50    if(abs(y2).ge.x1)go to 60
+      y1d=-b2
+      go to 70
+60    y1d=-q1
+70    continue
+      return
+      end
+
+
+As you see the statement was 
+
+	60    y1d=-q1
+
+so that the statement in the paper was probably incorrect.
+
+
+
+
+
+
+Lastly, to your question:
+
+<(a)  Are you aware of any typographical errors in the second numerical
+<     example?  In particular, I can't match the "0.500000066" value
+<     of the imaginary interval right end point.
+
+my guess is that it is a typographical error. The backup materials for this
+are long gone so the algebra and the program would have to be checked and
+rerun to get the correct result.
+
+Hope this helps.
+
+Jon Rokne
+
+

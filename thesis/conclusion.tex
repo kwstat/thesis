@@ -1,0 +1,73 @@
+%\bibliographystyle{apalike}
+
+\chapter{GENERAL CONCLUSIONS}
+
+%% \setcounter{chapter}{1}
+%% \setcounter{figure}{0}
+%% \setcounter{section}{0}
+%% \setcounter{subsection}{1}
+
+This dissertation has explored various ways in which interval analysis can be
+utilized in statistical computing.  Interval analysis uses intervals instead
+of real numbers as the basic units of calculation.  Interval analysis provides
+a means to evaluate the range of a function over a given domain.  Using this
+capability, it is possible to obtain numerical answers which are guaranteed to
+be correct to a certain level of accuracy and to contain the true result.
+Interval analysis is also able to guarantee finding global optimizers within
+an initial box.
+
+There are two broad topics covered in this dissertation as related to interval
+analysis.  Several sections of the dissertation are focused on obtaining
+numerical values which are of a guaranteed accuracy.  The application to
+statistics is in the computation of critical points and tail probabilities of
+several statistical distributions. For a bivariate chi-square distribution
+considered in one section, a series expansion is used together with a bound on
+the truncation error for the series.  By evaluating the finite series with
+intervals and evaluating the truncation error with intervals, an interval
+enclosure of the true probability is obtained.  To find critical points of a
+distribution, one approach requires solving for the root of an equation.  Due
+to the complicated form of the equation involved, the use of derivatives (as
+in the Newton-Raphson algorithm) is avoided in favor of a derivative-free
+root-finding method.  An interval secant algorithm (with Illinois
+modification) is developed and used for finding critical points of the
+distribution.  A bivariate $F$ distribution is also considered using similar
+techniques with the added complication that each term in the series involves
+the calculation of an interval Gaussian quadrature rule for evaluating a
+numerical integral.  The methods prove successful for computing guaranteed
+enclosures of the probabilities to several decimal places (at a minimum).  In
+some cases the guarantee extends to more than a dozen accurate digits.  The
+guaranteed values allowed for the discovery of errors in earlier published
+tables.
+
+
+A third section of the dissertation considers the global optimization
+capabilities of interval analysis.  The EM algorithm is widely used in
+statistics for estimating parameters of a model when data is missing.  The
+original EM paper by \cite{DLR} has been cited in more than 2000 papers since
+its publication and continues to be an active area of research.  Much of the
+research about the EM algorithm has explored ways to speed up the rate of
+convergence to a stationary point.
+
+While enjoying enormous popularity, the EM algorithm, like many optimization
+methods, generally only converges to a stationary point (not necessarily the
+global optimum).  Using special properties of the EM algorithm, an interval
+enclosure of the gradient of the loglikelihood is derived.  The enclosure of
+the gradient is evaluated over an interval region.  Regions where the
+enclosure of the gradient does not contain zero are therefore known to contain
+no stationary points.  By beginning with an initial region and repeatedly
+subdividing the region into ever smaller pieces, regions which are known to
+not contain a stationary point are eliminated from consideration.  Any
+stationary points of the loglikelihood are located in the union of the
+undiscarded regions.  If the initial region is large enough, all stationary
+points of the loglikelihood will be found.  No other known method is capable
+of achieving the same result.
+
+Interval analysis has been demonstrated to be an effective tool in
+statistical computing.  The unique opportunities and challenges associated
+with interval analysis promise both opportunities for future research and
+future rewards.
+
+%\renewcommand{\bibname}{\centerline{Bibliography}}
+%\addcontentsline{toc}{section}{Bibliography}
+%\bibliography{thesis}
+

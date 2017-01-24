@@ -1,0 +1,10 @@
+.00001 .99999
+.001
+53
+0
+
+
+.00001 .9999 = initial interval width
+.001 = quick search epsilon tolerance
+53 = number of iterations
+0 = terminate

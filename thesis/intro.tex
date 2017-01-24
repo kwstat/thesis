@@ -1,0 +1,847 @@
+% intro.tex 
+
+\chapter{GENERAL INTRODUCTION}
+
+\section{Background}
+
+Since the beginning of mathematics, error has been a part of calculations, and
+reducing error has been an important component of research in many fields.
+Even with digital computers, error is still present.  There are
+two common types of error in statistical calculations: error from rounding and
+algorithmic error.
+
+Error from rounding occurs because the computer has only a finite set of
+numbers to approximate the whole real line.  Even simple fractions are often 
+impossible to represent exactly as a decimal on a computer.  An additional
+complication arises from the requirement that calculations be performed in
+base 2 instead of base 10, further increasing the potential for error during
+base conversion of numbers. 
+ 
+Algorithmic error typically occurs when an infinite algorithm is terminated
+after a finite amount of time.  For example, infinite series are frequently
+used to calculate functions such as $\exp$, $\sin$, $\cos$, etc.
+Truncating the infinite series to a finite number of terms will result in some
+error, regardless of how many digits of precision are used for the
+calculations. 
+
+Given that error exists, logical questions that follow are ones like ``How
+large is the error'' and ``Is the error likely to be a problem?''
+Consider the system of linear equations $Ax=b$ where
+\begin{equation}
+ A = \left( \begin{array}{ll}
+  64919121 & -159018721 \\
+  41869520.5 & -102558961
+ \end{array}\right)
+ \mbox{ and } b = \left( \begin{array}{l}1 \\ 0 \end{array}\right).
+\end{equation}
+The true solution to this set of equations is 
+\begin{equation}
+ \left( \begin{array}{l}
+ x_1 \\
+ x_2 \end{array} \right)
+ = \left( \begin{array}{r}
+ 205117922\\
+ 83739041 \end{array}\right).
+\end{equation}
+As reported by \cite{Bohlender}, even using IEEE double-precision
+arithmetic yields the following answer: 
+\begin{equation}
+ \left(\begin{array}{l}
+ x_1 \\ x_2 \end{array}\right) 
+ = \left( \begin{array}{r} 102558961 \\ 41869520.5 \end{array}\right),
+\end{equation}
+which is completely wrong.  
+
+As a second example, \cite{Toolbox} consider an example with two real 
+vectors, $$x=(10^{20}, 1223,10^{18}, 10^{15}, 3, -10^{12})$$
+$$y=(10^{20}, 2, -10^{22}, 10^{13}, 2111,10^{16}).$$
+The dot product of these two vectors is 
+$x \cdot y = 10^{40} + 2446 -10^{40} +10^{28} +6333 - 10^{28} = 8779.$
+On {\it all} standard computers, the result of this dot product is zero.
+In contrast, the use of interval arithmetic (introduced later)
+guarantees that the scalar product
+is somewhere in the interval $[0,1.93429e+25]$, possibly an acceptable answer,
+but likely to spur further investigation into the reasons behind the wide
+interval.  It would be possible in this example to use a computer
+with more mantissa digits and obtain an accurate answer, but that assumes that
+one knows of the need to use more precision, and in any case, no matter how
+many digits of accuracy are maintained, it is always possible for 
+actual computations to exceed this accuracy.  Clearly, there is a need 
+for additional understanding of error and ways to control the error.  One 
+of the tools which takes a step in the direction of these goals is 
+interval analysis.
+%--------------------------------------------------------------------------
+
+\section{Introduction to Interval Analysis}
+
+A suitable introduction to interval analysis can be found in \cite{Moore79}.
+The basic idea of interval analysis is to work with an interval not only as a
+set of numbers, but also as a number by itself.  
+A real interval $\mathbf{x}$ is defined 
+$\mathbf{x} = [\underline{x},\overline{x}]$
+where $\underline{x}$ and $\overline{x}$ are real numbers
+with  $\underline{x} \leq \overline{x}$.
+Let $\mathbf{x} = [\underline{x}, \overline{x}]$ and 
+$\mathbf{y} = [\underline{y}, \overline{y}]$.
+Arithmetic operations for intervals are defined:
+$$
+\mathbf{x} * \mathbf{y} = \{x * y : x \in \mathbf{x}, y \in \mathbf{y} \} 
+\mbox{ for } * \in \{ +,-,\cdot,\div\}.
+$$
+Closed-form expressions of the basic interval arithmetic operators also exist
+and are the means by which rational expressions are actually computed.  The
+closed-form expressions are:
+$$
+\mathbf{x} + \mathbf{y} = [\underline{x} + \underline{y}, 
+ \overline{x}+ \overline{y}]
+$$
+$$
+\mathbf{x}  - \mathbf{y} = [\underline{x}-\overline{y},
+\overline{x}-\underline{y}]
+$$
+$$
+\mathbf{x}  \cdot \mathbf{y} = [\min(\underline{x}\underline{y},
+    \underline{x}\overline{y}, \overline{x}\underline{y},
+    \overline{x}\overline{y}),
+  \max(\underline{x}\underline{y}, \underline{x}\overline{y}, 
+       \overline{x}\underline{y}, \overline{x}\overline{y})]
+$$
+$$ 1 / \mathbf{y} = [1/\overline{y}, 1/\underline{y}], \quad 0 \notin
+\mathbf{y}
+$$
+$$\mathbf{x}  / \mathbf{y} = \mathbf{x} \cdot (1/\mathbf{y}), \qquad 0 \notin
+\mathbf{y}
+$$
+Examples of interval arithmetic:
+$$[1,1] + [-2,5] = [-1,6]$$
+$$[-2,3] \cdot [1,4] = [-8,12].$$
+
+From these basic definitions, the following properties are observed to hold for
+intervals:
+$$
+\mathbf{x} + (\mathbf{y} + \mathbf{z}) = (\mathbf{x} + \mathbf{y}) +
+\mathbf{z}
+$$
+$$
+\mathbf{x} \cdot (\mathbf{y} \cdot \mathbf{z}) = (\mathbf{x} \cdot \mathbf{y})
+\cdot \mathbf{z}
+$$
+$$
+\mathbf{x} + \mathbf{y} = \mathbf{y} + \mathbf{x}
+$$
+$$
+\mathbf{x} \cdot \mathbf{y} = \mathbf{y} \cdot \mathbf{x}
+$$
+for any intervals $\mathbf{x}$, $\mathbf{y}$, and $\mathbf{z}$.  Interval
+addition and multiplication is therefore both associative and 
+commutative for both addition and multiplication.
+One of the ways in which interval arithmetic differs from real arithmetic is
+that interval arithmetic is not distributive, but subdistributive only.  
+As a consequence, interval
+subtraction and division are not the inverse of interval 
+addition and multiplication.  For example:
+$$[0,1]-[0,1] = [-1,1]$$
+$$[1,2]/[1,2] = [1/2, 2].$$
+For interval arithmetic, the subdistributive law states that for
+intervals $\mathbf{x}, \mathbf{y}$, and $\mathbf{z}$,
+$$\mathbf{x}\cdot (\mathbf{y}+\mathbf{z}) \subseteq 
+  \mathbf{x}\cdot \mathbf{y}+\mathbf{x}\cdot\mathbf{z}.$$
+Further basic definitions and properties of intervals
+can be found in \cite{RR84}.
+%--------------------------------------------------------------------------
+\section{Interval Inclusion of Functions}
+Extending the ideas of real functions to interval functions is not
+straightforward.   Several approaches are possible.  
+An {\it interval function} is defined as an
+interval-valued function of one or more interval arguments.
+
+A function ${\bf f}({\bf x}_1, \ldots {\bf x}_n)$ is said to be an
+{\it interval extension} of $f(x_1, \ldots, x_n)$ if 
+$${\bf f}([x_1,x_1], \ldots, [x_n,x_n]) = f(x_1, \ldots, x_n)$$
+for all $x_i, i=1,\ldots,n$.
+
+Let $f(x_1,\ldots,x_n)$ be a real-valued function of $n$ real variables.  For
+$x_1,\ldots,x_n$ defined over the intervals
+${\bf x}_1,\ldots,{\bf x}_n$ respectively, the
+{\it united extension} of $f$ over ${\bf x}_1,\ldots,{\bf x}_n$ is given by
+$$
+{\bf f}({\bf x}_1,\ldots,{\bf x}_n) = 
+ \{ f( x_1,\ldots, x_n) : x_1 \in {\bf x}_1,\ldots,x_n \in {\bf x}_n
+ \}.
+$$
+The united extension of a function is unique, however, it need not be an
+interval.
+
+One kind of  interval extension that is fairly logical
+is the so-called {\it natural interval extension} which
+is defined this way:
+let $f(x_1,\ldots,x_n)$ be a rational function of
+$n$ variables.  Consider any sequence of arithmetic steps which serve to
+evaluate $f$ with given arguments $x_1,\ldots,x_n$.  Suppose the
+arguments $x_i$ are replaced by corresponding intervals 
+${\bf x}_i, (i=1,\ldots,n)$ and
+the arithmetic steps in the sequence used to evaluate $f$ are replaced by the
+corresponding interval arithmetic steps.  The result will be an interval ${\bf
+f}({\bf x}_1,\ldots,{\bf x}_n)$.  This interval contains the value of
+$f(x_1,\ldots,x_n)$ for all $x_i \in {\bf x}_i, (i=1,\ldots,n)$.
+
+An interval-valued function ${\bf f}$ is said to be 
+{\it inclusion monotonic} if 
+${\bf f(x) \subseteq f(y)}$ whenever ${\bf x \subseteq y}$.
+A fundamental theorem from interval analysis states that rational interval
+functions are inclusion monotonic.
+
+It should be noted that an interval extension need not be unique, but can
+depend on the form of the real function.  For
+example, while the following three expressions all represent the same
+real function,
+$$f_1(x) = x^2 - x + 1$$
+$$f_2(x) = (x-\frac{1}{2})^2 + \frac{3}{4}$$
+$$f_3(x) = x\cdot(x-1)+1,$$
+the corresponding natural interval extensions
+$$\mathbf{f}_1 (\mathbf{x}) = \mathbf{x}^2 - \mathbf{x} + 1$$ 
+$$\mathbf{f}_2 (\mathbf{x}) = (\mathbf{x}-\frac{1}{2})^2 + \frac{3}{4}$$
+$$\mathbf{f}_3 ({\bf x}) = {\bf x} \cdot ({\bf x} -1)+1$$
+do {\it not} represent the same function.
+For illustration of how these functions differ, consider the following results:
+$$\mathbf{f}_1([0,2]) = [-1,5]$$  
+$$\mathbf{f}_2([0,2]) = \left[ \frac{3}{4},3\right]$$ 
+$${\bf f}_3([0,2]) = [-1,3].$$
+Thus, attention and care must given to the choice of an interval extension in
+order to obtain the narrowest possible interval result.
+As shown in figure~\ref{figure:parabola}, the true range of 
+$f$ over $[0,2]$ is $[\frac{3}{4},3]$, which is precisely that computed by 
+the interval function 
+$\mathbf{f}_2$.  As shown by \cite{Hansen:Sharp}, this is because $\mathbf{x}$
+appears in the expression of $\mathbf{f}_2$ only once.  In general, when a 
+given interval argument appears only once in a function, the evaluation of the
+interval function produces a {\it sharp} interval that exactly matches the
+true range of the function over the given interval.  
+When a given interval argument appears more than once in a function, the
+evaluation of the function may produce an interval wider than the sharp
+enclosure.  This characteristic of interval analysis is referred to as the {\it
+dependency problem}.  In some cases the dependency problem can be eliminated
+by simply changing a definition.  For example, suppose $\mathbf{x} = [-1,2]$.
+Then thinking of the square operation as simply multiplying two intervals
+together, 
+$\mathbf{x}^2 = \mathbf{x} \cdot \mathbf{x} = [-1,2] \cdot [-1,2] = [-2,4]$.
+This is not a sharp interval and contains negative real numbers-obviously not
+a desirable feature.  It is possible to fix this problem
+with an appropriate definition of
+$\mathbf{x}^2$  as $\mathbf{x}^2 = \{ x^2 : x \in {\bf x} \}$.  Then, for
+example, $[-1,2]^2 = [0,4]$.
+
+\begin{figure}[!ht]
+ \begin{center}
+  \begin{picture}(300,240)
+   %Vertical line
+   \put(40,40){\line(0,1){200}}
+   %Vertical line ticks
+   \put(38,90){\line(1,0){4}}
+   \put(20,85){1.0}
+   \put(38,140){\line(1,0){4}}
+   \put(20,135){2.0}
+   \put(38,190){\line(1,0){4}}
+   \put(20,185){3.0}
+   % Horizontal line
+   \put(40,40){\line(1,0){200}}
+   % Horizontal line ticks
+   \put(90,38){\line(0,1){4}}
+   \put(83,25){1.0}
+   \put(140,38){\line(0,1){4}}
+   \put(133,25){2.0}
+   \put(190,38){\line(0,1){4}}
+   \put(183,25){3.0}
+   % Dashed vertical line
+   \qbezier[20](140,40)(140,110)(140,190)
+   % Interval enclosure
+   \put(165,77){\line(0,1){112}}
+   \put(163,77){\line(1,0){4}}
+   \put(163,190){\line(1,0){4}}
+   \put(170,127){$\mathbf{f}_2(\mathbf{x})=[\frac{3}{4},3]$}
+   % Dashed horizontal lines
+   \qbezier[20](40,77)(100,77)(165,77)
+   \qbezier[20](40,190)(100,190)(165,190)
+   % Interval 
+   \put(40,15){\line(1,0){100}}
+   \put(40,13){\line(0,1){4}}
+   \put(140,13){\line(0,1){4}}
+   \put(70,2){$\mathbf{x} = [0,2]$}
+   % Parabola
+   \qbezier[100](15,127)(80,-2)(148,210)
+   \put(170,210){$f(x)=x^2-x+1$}
+
+  \end{picture}
+ \end{center}
+ \caption{Example of an interval extension.\label{figure:parabola}}
+\end{figure}
+
+With the basic aspects of interval analysis thus defined, how should interval
+analysis  
+be applied to particular problems? \cite{Walster88} presents a set of
+principles to guide  
+the thinking of interval analysis:\\
+\\
+1. Interval algorithms should bound all sources of error \\
+\\
+2. Interval input/output conventions should be consistent with people's normal
+interpretation of numerical accuracy  \\
+\\
+3. The application of interval algorithms should be universal \\
+\\
+4. Where interval algorithms currently do not exist, we should get to work
+developing them rather than abandoning the principle of universal
+applicability.  \\
+
+\section{Interval Analysis and Digital Computing }
+
+Efforts to produce accurate numerical results have been around nearly as long
+as  number systems. The current widely-used approach for representation of
+numbers on computer systems dates back to the late 1970s with the
+establishment of a task force by the IEEE. From that work, and from the work
+of a second task force, emerged two standards \cite{ANSI85, ANSI87}. A brief
+overview and history of the hardware aspects of the standards can be found in
+\cite{Cody88}.The widely-used Intel 80x87 series of chips conform to this
+standard as do the numerical processors in many workstations. The standards
+focus mainly on the representation of floating point numbers, but also include
+rules for handling NaNs, overflow, underflow, rounding, etc. As regards to
+rounding floating point numbers, the first standard \cite{ANSI85} specifies
+that the floating point processor support rounding to zero, nearest,
+$+\infty$, and $-\infty$.  Software support for allowing user access to the
+various rounding modes, while available, is generally not as easily available
+as would be desired. As one simple example, Fortran 77 has no direct support
+for control of the rounding mode. Programmers wishing to utilize the special
+rounding modes need specialized software packages and/or detailed knowledge of
+a computer's inner workings. Examples of such packages include programming
+languages like Pascal-XSC \cite{Hammer93}, ACRITH-XSC \cite{Walter93},
+Fortran-SC \cite{Walter88,Metzger88}, and C-XSC \cite{Lawo93}. A comparison of
+these environments (and others) can be found in \cite{Kea96b}. These
+scientific computing languages typically have some combination of support for
+interval data types, dynamic vectors and arrays, dot product expressions,
+rounding control, a large set of standard mathematical functions, operator
+overloading and user-defined operators.  
+
+For example, consider a software package with functions RoundUp and RoundDown 
+that are used to control the rounding mode. Imagine using these functions on a
+computer which has three digits in floating-point numbers. The interval
+enclosure of 1/3  
+would be computed as 
+$$[\mbox{RoundDown}(1/3); \mbox{RoundUp(1/3)}] 
+= [0.333; 0.334] = [0.33^4_3 ].
+$$
+Use of the directed rounding rigorously guarantees that the resulting interval
+contains the true value. By using the monotonicity property of rational
+interval functions and by using other properties, more complicated functions
+can be constructed. The exponential function, for example, can be computed via
+a series expression,  
+$$
+\mbox{exp}(x) = \sum_{n=0}^\infty\frac{x^n}{n!}
+$$
+which converges for all real 
+$x$. For $x \leq 0$, the inequality 
+$$
+\left| \mbox{exp}(x) -\sum_{n=0}^N \frac{x^n}{n!} \right| \leq \frac{x^{N+1}}{(N+1)!}
+$$
+can be used to calculate and enclosure of exp($x$) by rearranging the
+expression as  
+$$
+\sum_{n=0}^N \frac{x^n}{n!} - \frac{x^{N+1}}{(N+1)!} \leq
+\mbox{exp}(x) \leq
+\sum_{n=0}^N \frac{x^n}{n!} + \frac{x^{N+1}}{(N+1)!}
+$$
+and using interval arithmetic to calculate the rational functions which bound
+exp(x) above and below, then taking the hull of the these intervals. 
+
+An example from \cite{Kramer:multiple:precision} 
+illustrates a completely different approach to inter- 
+val enclosures of functions, in this case the natural logarithm. 
+Beginning with $x_0 > 0$ and $y_0 > 0$, the sequences 
+$$
+x_{n+1} := \sqrt{x_n \frac{x_n + y_n}{2}}
+$$
+$$
+y_{n+1} := \sqrt{x_n \frac{y_n + y_n}{2}}
+$$
+both converge to log($\frac{x_0}{y_0}$). At each step, 
+$$
+\lim_{n \rightarrow \infty} x_n = \lim_{n \rightarrow \infty} y_n \in
+[\mbox{min}(x_n, y_n), \mbox{max}(x_n, y_n)].
+$$
+To compute log($x$), set $x_0 = x$ and $y_0 = 1$. 
+The sequences $x_n$ and $y_n$ can either be 
+computed with scalars (and careful use of rounding modes) or with intervals, in which 
+case $log(x) \in Hull(\mathbf{x}_n ; \mathbf{y}_n )$. 
+
+An extensive set of algorithms for computing standard functions and inverse standard 
+functions for interval arguments can be found in \cite{Brane} and
+\cite{Kramer}.
+
+\section{Automatic Differentiation}
+
+Automatic differentiation is a method for computing derivatives of functions
+without resorting to symbolic manipulation or numerical approximations, but
+instead using standard differentiation rules and propagation of numerical
+values. No explicit expression for the derivatives is required. 
+
+Automatic differentiation frequently arises in the context of interval
+analysis algorithms. Algorithms in interval analysis which use derivatives of
+functions need an accurate and efficient means by which to compute the
+derivative of the function. Numerical derivatives are generally insufficiently
+accurate for interval calculations. Symbolic  
+derivatives can be difficult to calculate efficiently and may be difficult to
+include in an  
+algorithm, either by programming symbolic manipulations from scratch, or by
+linking to an external program (e.g. Maple or Mathematica) that actually
+calculates the symbolic derivatives. \cite{Corliss88} makes the surprising
+claim that with automatic differentiation, 'on most computers, it is less expensive to evaluate the
+first few derivatives of $f$  
+than it is to evaluate $f$ itself.'
+
+For simplicity of expression, the techniques of automatic differentiation
+typically use Taylor coefficients instead of derivatives directly. For the
+Taylor coefficients of a real function $f$ , the following notation is used: 
+$$
+(f)_k := \frac{1}{k!} f^{(k)} (x_0 ) :=\frac{1}{k!}\frac{d^k f}{dx^k} |
+_{x=x_0}, 
+k = 0, 1, \ldots
+$$
+Using this notation, $f(x_0 ) = (f)_0$, $f'(x_0 ) = (f)_1$, and 
+$f^{(k)} (x_0) = k!(f)_k $ . The rules from 
+calculus for differentiation of basic arithmetic functions lead to the following Taylor 
+coefficients: 
+$$
+(f + g)_k = (f)_k + (g)_k 
+$$
+$$
+(f- g)_k = (f)_k - (g)_k 
+$$
+$$
+(f \cdot g)_k = \sum_{j=0}^k (f)_j \cdot (g)_{k-j}
+$$
+$$
+(f/g)_k = \frac{1}{(g)_0} \left((f)_k - \sum_{j=0}^{k-1}(f/g)_j \cdot (g)_{k-j}\right)
+$$
+For the exponential function, 
+$$
+(w)_0 = \mbox{exp}((f)_0 )
+$$
+$$ 
+(w)_k = \frac{1}{k}\sum_{j=0}^{k-1} (k-j) \cdot (w)_j \cdot (f)_{k-j}, k \geq 1
+$$
+Similar rules exist for other functions (e.g. sin, cos). 
+
+\section{Previous Applications of Interval Analysis to Statistics}
+
+Applications of interval analysis to statistical problems have previously appeared in 
+the areas listed below. 
+
+\subsection{Score Model}
+
+One early application of interval arithmetic to statistics is due to \cite{Walster88}, 
+where consideration is given to a score model $x_i = t + \epsilon_i$ where 
+$\epsilon_i \sim (0, \sigma_\epsilon)$ with the 
+observations being independent. The usual estimate of $t$ is $\overline{x}$, 
+which has the desirable 
+properties of being an unbiased estimate of $t$ and of having an increasing precision as the number of observations, $n$, increases, i.e. $Var(\overline{x}) =
+\sigma^2_\epsilon / n$. If it is possible to bound 
+the errors $\epsilon_i$, then for some finite $\delta$, $-\delta < \epsilon_i
+< \delta$ for each $i$ and it is possible to construct 
+interval data as $x_i = [x_i -\delta, x_i + \delta]$. 
+One interval estimate of $t$ is to compute the 
+mean of the interval data, $\overline{x} = [\overline{x} -\delta, \overline{x} +
+\delta]$.
+Unfortunately, this estimator has a fixed 
+width, regardless of the amount of data collected. As an alternative, since
+the errors are  
+bounded, it is the case that $t \in [x _i -\delta, x_i + \delta]$ for every
+$i$ and thus 
+$$
+\mathbf{t} = \bigcap_{i=1}^n [ x_i - \delta, x_i + \delta] = [\mbox{max} (x_i) -
+\delta, \mbox{min}(x_i) + \delta]
+$$
+can also be used to estimate t. This estimator has at least the potential of decreasing 
+in width as more data is collected. 
+
+\subsection{Probability Distributions}
+
+From random number simulation to critical points of hypothesis tests,
+statistical distributions are an important part of statistical
+computing. \cite{WK90a} present a self-validated method for the calculation of
+bivariate Normal probabilities over rectangular regions using interval
+analysis. Their method served as the basis for comparing several different
+methods for computing probabilities of a bivariate Normal distribution when
+issues of speed and accuracy are of concern.  
+
+In dimensions higher than two, \cite{WK92a} use a Taylor series expansion of
+the multivariate Normal integral and automatic differentiation to calculate
+interval enclosures of probabilities over rectangular regions. The method is
+used to conclude that the Taylor series approximation gives more accurate
+results than an algorithm by Schervish. 
+
+More recently, \cite{WK94} developed various interval-based ways for  
+obtaining self-validated probabilities and percentiles of several univariate
+distributions,  
+including Normal, Incomplete Gamma, Incomplete Beta, and Noncentral Chi-Square. 
+The work was expanded to include the Central and Noncentral F distributions in 
+\cite{WK95}.
+
+Using a slightly different approach, \cite{WangO94} used a MasPar (Massively Parallel) 
+machine for self-validated probabilities from multivariate Normal and multivariate t 
+distributions. 
+
+\subsection{Least Squares }
+
+In the traditional Least Squares methodology, dependent variables 
+$y_1, y_2, \ldots, y_n$ are
+assumed to be related to independent variables $X_1, X_2, \ldots, X_n$ by 
+the relation
+$$
+y = X\beta + e
+$$ 
+where the errors are independent and distributed as N(0,$\sigma^2$). 
+When $X$ has full rank, 
+there is a unique $b$ that minimizes the sum of the squares of the errors, 
+$\|y-X\beta\|_2$.  
+This unique solution, 
+$$
+b = (X' X)^{-1}X'y,
+$$
+has many desirable properties, such as unbiasedness and being the maximum likelihood 
+estimator of $\beta$.
+
+If $\mathbf{X} = [\underline{X},\overline{X}]$ and $y = [\underline{y},
+\overline{y}]$, 
+then an interval least squares solution provides an 
+enclosure of 
+$$
+\mathbf{B} = \mathbf{X}'\mathbf{y} = \{X'y: X\in \mathbf{X}, y\in\mathbf{y}\}.
+$$
+
+Interval least squares was researched by \cite{Gay88} with the conclusion (p. 203): 
+``Interval least-squares estimates can furnish rigorous and reasonably tight 
+bounds on the effect of errors in the independent variables on forecasts and, 
+as special cases, on parameter estimates.''
+
+\subsection{Optimization }
+
+Optimization techniques are an essential tool in statistical computing. Some of the 
+areas which require optimization methods include: \\
+1. Maximum likelihood \\
+2. Optimal experimental design \\
+3. Projection pursuit \\
+4. Nonlinear least squares \\
+5. Minimum volume ellipsoids \\
+
+Traditional optimization methods used for these problems include Steepest Descent, 
+Newton-Raphson, DUD (Doesn't Use Derivatives), and Simulated Annealing. The more 
+widely used methods are discussed in the books by \cite{Thisted} and 
+\cite{KennedyGentle}. Simulated Annealing has been applied to optimal design
+problems in a  
+paper by \cite{BJS86}, while DUD is discussed in a nonlinear least-squares 
+context by \cite{Ralston}. Simulated Annealing has perhaps the best 
+chance of the methods listed here for avoiding being trapped in a local optimum and has 
+proven effective for solving some problems, but requires parameters that can
+be difficult  
+to tune so that a global optimum is located with any degree of certainty. 
+
+Interval analysis can also be used for global optimization. \cite{Han88} 
+and \cite{Kea96b} are two monographs on this topic. A short description of
+the basic idea of interval global optimization is now given in terms of
+maximization. (Minimization is very similar). Interval analysis can be used to
+enclose the range of a function over a given domain. A non-interval
+optimization method can be used to quickly locate a local optimum $y^*$, which
+has interval enclosure $\mathbf{f}(y^*)$. The maximum value of the function
+$f$ then must be at least as large as the lower bound of the interval enclosure 
+$\underline{\mathbf{f}}(y^*)$. Starting 
+with an initial interval box $\mathbf{y}_0$, 
+the region is bisected repeatedly into ever smaller boxes. 
+If a box $\mathbf{y}_i$ satisfies 
+$\mathbf{f}(\mathbf{y}_i) < \underline{\mathbf{f}}(y^*)$,
+then it is known that $\mathbf{y}_i$ does not contain a global 
+maximum and can be discarded. 
+
+\cite{WangO94} uses interval global optimization algorithms on a MasPar
+machine to solve several problems from nonlinear regression, optimal design,
+and maximum likelihood for a moving average model.  
+
+\section{Example Applications of Interval Analysis to Statistics}
+
+This section describes several ways (that have not previously been published)
+in which interval analysis can be utilized in statistics. These are simple
+examples (and so are not presented in great detail) that serve as
+demonstrations.  
+
+\subsection{Experimental Design}
+
+Table \ref{table:rcb} from \cite{Montgomery91} (page 151) 
+illustrates an experimental design with 
+missing data in the response variable. 
+In this case there is one missing value. A traditional approach to analysis of
+this data is to minimize the error sum of squares with respect to $x_m$. As
+stated by \cite{Montgomery91},
+
+\begin{table}[ht!]
+\caption{\label{table:rcb} Randomized complete block design with one missing
+  value} 
+\begin{center}
+\begin{tabular}{|c|cccc|} \hline
+ & \multicolumn{4}{|c|}{Block} \\
+Type of Tip & 1 & 2 & 3 & 4 \\ \hline
+ 1 & -2 & -1 & 1 & 5 \\
+ 2 & -1 & -2 & $x_m$ & 4  \\
+ 3 & -3 & -1 & 0 & 2 \\
+ 4 & 2 & 1 & 5 & 7 \\ 
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+$$
+SS_E = \sum_{i=1}^a \sum_{j=1}^b y^2_{ij} - 
+  \frac{1}{b} \sum_{i=1}^a\left( \sum_{j=1}^b y_{ij}\right) ^2
+  - \frac{1}{1} \sum_{j=1}^b\left( \sum_{i=1}^1 y_{ij}\right) ^2
+  + \frac{1}{ab} \left( \sum_{i=1}^a \sum_{j=1}^b y_{ij}\right) ^2
+$$
+or in the case of one missing value, 
+$$
+SS_E = x^ 2 _m -\frac{1}{b}(y'_{i.} + x_m)^2 
+  -\frac{1}{a}(y'_{.j} + x_m)^2 + \frac{1}{ab}(y'_{..} + x_m)^2+ R
+$$
+where R includes terms not involving $x_m$ . Solving this yields 
+$$
+x_m = \frac{ay'_{i.} + by'_{.j}-y'{..}}{(a-1)(b-1)}
+$$
+for the missing data. For the data presented here, the estimate of the missing data 
+is 
+$\hat{x}_m = 1.22$. 
+The analysis of variance is performed with the estimated value and a 
+reduction in the error degrees of freedom by one. 
+
+This is a useful approach for analysis of variance, but offers little help in
+the way of sensitivity analysis for the estimates of the parameters in the
+design. Designating the  
+observed data by $Y$ and the appropriate design matrix by $X$, the model can
+be written  $Y = X\beta$. Using the value of 1.22 as an estimate of the
+missing data, $\hat{\beta} = (X'X)^{-1}X'Y$ gives
+$$
+\hat{\beta} = \left[ 
+ \begin{array}{c}
+7.11125 \\
+-5.5 \\
+-5.25 \\
+-2.695 \\
+- 3 \\
+- 3.195 \\
+-4.25 
+\end{array} \right]
+$$
+as the best linear unbiased estimator. 
+
+Suppose the missing value $x_m$ is replaced by an interval value 
+$\mathbf{x}_m$. The choice of an 
+estimate for $\mathbf{x}_m$ 
+can be made in several ways. The experimenter may posses knowledge 
+about the response (dependent) variable which provides obvious bounds. If, for
+example, the response variable is a proportion, then $[0, 1]$ 
+must be the widest possible estimate of 
+$\mathbf{x}_m$. 
+Depending on which response value is missing, it may be possible to use another 
+approach. For illustration purposes, $\mathbf{x}_m$ 
+is here estimated by $[-3, 7]$, which encompasses 
+the range of values observed in the response variable. Let $Y_I$ 
+be interval data equal to 
+the original data $Y$ with the exception that $Y_I$ 
+uses $\mathbf{x}_m$ in place of the missing data $x_m$ . 
+Setting $\hat{\beta}_I = (X'X)^{-1}X'Y_I$ yields
+$$
+\hat{\beta}_I = \left[ 
+ \begin{array}{c}
+\left[6.75, 7.375\right]\\
+\left[-5.5, -5.5\right] \\
+\left[-5.25, -5.25\right]\\
+\left[-3.75, -1.25\right] \\
+\left[-3, -3\right] \\
+\left[-4.25, -1.75\right] \\
+\left[-4.25, -4.25\right]
+\end{array} \right]
+$$
+as an interval estimate of $\beta$.
+
+It is now possible to see immediately and at a glance which values and to what
+extent the values of $\hat{\beta}_I$
+are influenced by the interval estimate of $x_m$ . 
+
+\subsection{Kolmogorov Smirnov Distribution}
+
+Tables for estimating the goodness of fit of empirical distributions were
+published by \cite{Smirnov}. The distribution used is 
+\begin{equation}
+\label{eqn:gof}
+F(x) = 1-2\sum_{i=1}^\infty (-1)^{i-1}e^{-i^2 x^2}.
+\end{equation}
+
+Let $\mathbf{F}_k$ denote the interval extension of (\ref{eqn:gof})
+truncated after $k$ terms. Since the series 
+in (\ref{eqn:gof}) is alternating, 
+$F(x) \in Hull(\mathbf{F}_k , \mathbf{F}_{k+1} )$ for each $k$. 
+The series is calculated until no 
+change in $Hull(\mathbf{F}_k , \mathbf{F}_{k+1} )$
+is observed from one iteration of $k$ to the next. Examples of 
+the self-validated values for the distribution function appear in tables
+\ref{table:gof1} and \ref{table:gof2}. The tables 
+validate the results published in \cite{Smirnov} with the exceptions of some values in 
+the earlier published work that appear to be typographical and/or rounding errors. 
+
+\begin{table}[ht!]
+\caption{\label{table:gof1} Guaranteed bounds for distribution points of
+Smirnov's distribution }
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c|cc|c}
+$x$ & $F(x)$ & $x$ & $F(x)$ \\ \hline
+0.4 & $0.00280767322270_{15}^{29}$ & 1.5 & $0.977782037383474_8^9$\\
+0.5 & $0.03605475633512^{56}_{44}$ & 1.6 & $0.988047956760803^{ 5}_{ 4 }$\\
+0.6 & $0.13571722094939^{62}_{52}$ & 1.7 & $0.993822569365555^{ 9}_{ 8 }$\\
+0.7 & $0.28876480497031^{12}_{02}$ & 1.8 & $0.996932378652420^{ 3}_{ 2 }$\\
+0.8 & $0.45585758842580^{24}_{16}$ & 1.9 & $0.998536395162812^{ 7}_{ 6 }$\\
+0.9 & $0.607269292059345^{9}_{4}$ & 2.0 & $0.999329074744220^{ 4}_{ 3 }$\\
+1.0 & $0.730000328322645^{7}_{3}$ & 2.1 & $0.99970450327953^{ 7}_{0 69 }$\\
+1.1 & $0.82228180739359^{90}_{88}$ & 2.2 & $0.999874956992450^{ 4}_{ 3 }$\\
+1.2 & $0.887750333329275^{1}_{0}$ & 2.3 & $0.999949161306967^{ 6}_{ 5 }$\\
+1.3 & $0.931907778155233^{7}_{5}$ & 2.4 & $0.999980140991388^{ 3}_{ 2 }$\\
+1.4 & $0.960318120461885^{7}_{6}$ & 2.5 & $0.999992546693655^{ 9}_{ 8 }$
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{table}[ht!]
+\caption{\label{table:gof2} Guaranteed bounds for critical points of
+Smirnov's distribution }
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c|c}
+$x$ & $F(x)$ \\ \hline 
+$1.223847870217082^5_1$ & 0.90 \\
+$1.3580986393225^{505}_{500}$ & 0.95 \\
+$1.6276236115189^{ 517}_{484}$ &  0.99 
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{A Bivariate F Distribution }
+
+Let $X \sim \chi^2(2n), Y \sim \chi^2(2n)$, and $X_0 \sim \chi^2(2m)$ 
+be independent random variables. 
+The random variable $V = \frac{min(X,Y)/n}{X_0/m}$
+is known as the smaller of bivariate correlated F 
+variables, or studentized minimum Chi-square variable. Some references to this
+distribution are given by \cite{Hamdy}. 
+
+The density of V is given by 
+\begin{equation}
+\label{eqn:bivf0}
+h(v)=2\sum_{i=0}^{n-1} \frac{ {n+i-1 \choose i} (n/m)^{i+n}v^{n+i-1}}
+  {\beta(n+i,m)(1+2vn/m)^{n+m+i}}I(v>0),
+\end{equation}
+
+Hamdy et al. (1988) give an algorithm for finding $c$ in 
+$1-\alpha = \int_c^\infty h(v)dv$.  The heart
+of the algorithm involves computation of 
+\begin{equation}
+q(h) = \sum_{i=0}^{n-1} \sum_{j=0}^{m-1}{n+i-1 \choose i}{n+m+i-1 \choose j}
+    \left( \frac{1}{2} \right)^{n+i-1} h^j(1-h)^{n+m+i-1-j}
+\end{equation}
+
+where $h = (1 + 2nc/m)^{-1}$ $0 \leq h \leq 1$. Since 
+$q(h)$ is a rational function, its interval 
+extension $\mathbf{q}(\mathbf{h})$ is immediately obtainable. 
+For a given $\alpha$, the determination of $c$ proceeds 
+via some suitable root-finding method. For the present work, derivative-free
+bracket-secant and bisection methods were used. Some percentile points of
+this distribution are  
+tabulated below in table \ref{table:gupta}. 
+This tabulation is a subset of the tables in 
+\cite{GuptaSobel}.
+Table \ref{table:gupta} 
+verifies the results in \cite{GuptaSobel} with the exception of a 
+few values in the earlier work that appear to be rounding errors. 
+
+\begin{table}[ht!]
+\caption{\label{table:gupta} Percentile points of $V$ with degrees of freedom $m=n$}
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{c|c|c}
+$m$ & $1=\alpha=0.75$ & $1-\alpha=0.90$ \\ \hline
+1 & $0.166666666666666^{9}_{5} $ & $0.055555555555555^{69}_{47 }$\\
+2 & $0.31674887432700^{76}_{69} $ & $0.16295234436871^{81}_{76 }$\\
+3 & $0.40404581771562^{19}_{10} $ & $0.241694741845574^{8}_{3 }$\\
+4 & $0.46279003617582^{35}_{24} $ & $0.30016544276898^{53}_{44 }$\\
+5 & $0.50596585743400^{66}_{49} $ & $0.34570359411078^{26}_{16 }$\\
+6 & $0.53953488035766^{87}_{69} $ & $0.38253359804302^{29}_{18 }$\\
+7 & $0.56666603181305^{36}_{14} $ & $0.41318079377463^{40}_{25 }$\\
+8 & $0.58922356764353^{60}_{56} $ & $0.43924707520903^{33}_{18 }$\\
+9 & $0.60838773909400^{75}_{37} $ & $0.4618026569781^{807}_{784 }$\\
+10 & $0.6249483525127^{432}_{398} $ & $0.48159369356954^{73}_{51 }$\\
+11 & $0.63945734273308^{47}_{12} $ & $0.49915892547182^{61}_{41 }$\\
+12 & $0.6523140778575^{116}_{078} $ & $0.51489877713092^{55}_{30 }$\\
+13 & $0.66381591094938^{65}_{23} $ & $0.52911819748746^{76}_{41 }$\\
+14 & $0.67418959284749^{65}_{16} $ & $0.54205427500907^{35}_{04 }$\\
+15 & $0.68361157764423^{81}_{32} $ & $0.5538946419155^{329}_{296 }$\\
+16 & $0.69222159319099^{76}_{27} $ & $0.56479009787345^{44}_{06 }$\\
+17 & $0.7001319730934^{227}_{165} $ & $0.57486348822727^{75}_{33 }$\\
+18 & $0.70743423464199^{89}_{31} $ & $0.58421608660013^{74}_{29 }$\\
+19 & $0.7142038168150^{350}_{285} $ & $0.59293227318832^{56}_{11 }$\\
+20 & $0.720503558738^{701}_{694} $ & $0.6010830234646^{128}_{077 }$\\
+21 & $0.7263862971195^{708}_{639} $ & $0.60872855022104^{79}_{28 }$\\
+22 & $0.73189683545944^{79}_{11} $ & $0.61592033239380^{82}_{24 }$\\
+23 & $0.7370734575331^{603}_{525} $ & $0.6227026926850^{731}_{673 }$\\
+24 & $0.74194910507571^{83}_{04} $ & $0.62911403840910^{90}_{38 }$\\
+25 & $0.7465523045448^{913}_{829} $ & $0.6351878476747^{249}_{185}$
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Internet Resources for Interval Analysis}
+
+The world wide web serves as an extremely valuable resource for researchers
+interested in interval computations. A pair of starting points for searching
+the WWW are given here.  
+
+Development of some interval software packages (including BIAS/PROFIL) is
+proceeding at Technische Universit¨at Hamburg-Harburg. See\\
+http://www.ti3.tu-harburg.de/indexEnglisch.html for details. 
+
+The URL for the {\it Interval Computations} journal homepage is \\
+http://cs.utep.edu/interval-comp/main.html. 
+This site contains numerous links to bibliographies, software, homepages of
+interval computations centers and individuals, etc.  
+
+\section{Dissertation Organization }
+The remainder of this dissertation is divided into several chapters, each of
+which applies methods of interval analysis to a separate problem in
+statistics. The following three chapters are written as manuscripts for
+submission to scientific journals. This arrangement means there may be some
+duplicity and some differences in notation between  
+chapters, but also means that each chapter can be read independently of the
+others. 
+
+The chapter which follows this one addresses calculating critical points and
+tail probabilities for several bivariate Chi-square distributions. Since
+locating the critical point  for a given tail probability of a distribution
+typically involves root-finding, there is also development of an interval
+secant algorithm (with Illinois modification). Some tables of verified
+percentile points of the distributions are presented.  
+
+The third chapter takes a similar approach, but considers a class of bivariate
+F distributions. Series expansions are used in the calculations together with
+self-validated numerical quadrature rules.  
+
+The fourth chapter considers a different type of problem altogether. Several
+ways of using interval analysis together with the EM algorithm are
+considered. One of the ways in which these two have successfully been combined
+is to consider an enclosure of the gradient of the loglikelihood and eliminate
+portions of the parameter space where the gradient is not zero. The
+methodology for this technique is presented along with an algorithm for the
+procedure. The methodology is applied to several examples.  
+
+Conclusions are presented at the end of the dissertation. 

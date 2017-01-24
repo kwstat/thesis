@@ -1,0 +1,47 @@
+================================
+Problem: Rho = 0.9 with m=50 doesn't work very well.
+
+1. Incomplete Gamma CDF
+2  Biv. Chi-Sq CDF: 
+3  Single Rho, Percentile points of Biv. Chi-Sq 
+4  Multiple Rho, percentile pts 
+2
+
+c1 = 0
+d1 = 50
+c2 = 0
+d2 = 50
+m  = 50
+rho = .9
+Prob = [1.97787553337539e-17,1]
+==============================
+Note: m=1 seems to give the secant method problems.  Don't know why, since
+the (2) choice worked correctly:
+
+
+1. Incomplete Gamma CDF
+2  Biv. Chi-Sq CDF: 
+3  Single Rho, Percentile points of Biv. Chi-Sq 
+4  Multiple Rho, percentile pts 
+4
+
+Input p = P(y1 < p, y2 < p): .95
+Input m 1
+x0 2
+x1 10
+Critical Values : m = 1
+
+
+1. Incomplete Gamma CDF
+2  Biv. Chi-Sq CDF: 
+3  Single Rho, Percentile points of Biv. Chi-Sq 
+4  Multiple Rho, percentile pts 
+2
+
+c1 = 0
+d1 = 5
+c2 = 0
+d2 = 5
+m  = 1
+rho = .1
+Prob = [0.950055447406481,0.950055447406512]

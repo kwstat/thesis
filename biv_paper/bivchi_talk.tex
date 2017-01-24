@@ -1,0 +1,529 @@
+
+% conf.tex
+
+\documentclass{slides}
+\pagestyle{plain}
+%\usepackage{isuthesis,natbib,amstex}
+
+\begin{document}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Self-Validated Computations for the Probabilites of the Central \\
+Bivariate Chi-Square Distribution\\  
+\vspace{2 in}
+
+Kevin Wright \\
+Iowa State University\\
+October, 1997 \\
+\vspace{1 in}
+Ph.D. advisor: William Kennedy
+
+\vspace{1 in}
+Iowa State Dept of Statistics\\
+50th Anniversary Conference\\
+October, 1997
+\end{center}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+
+\begin{center}
+Outline
+\end{center}
+
+$\bullet$ Introduction to Interval Analysis
+
+$\bullet$ Bivariate Chi-Square Distributions
+
+$\bullet$ Interval Bracket-Secant/Bisection 
+
+$\bullet$ Numerical results
+
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Motivation
+\end{center}
+$\bullet$ Error analysis 
+
+$\bullet$ Cancellation 
+
+$\bullet$ Rounding errors
+
+Solution?  Interval analysis \\
+
+Goal: Guaranteed error bounds
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Interval Anaylsis (Moore, 1966, 1979)
+\end{center}
+A real interval $\mathbf{x}$ is defined 
+$\mathbf{x} = [\underline{x},\overline{x}]$
+where $\underline{x} \in \Re, \overline{x} \in \Re, 
+  \underline{x} \leq \overline{x}$.
+
+Let $\mathbf{x} = [\underline{x}, \overline{x}]$ and 
+$\mathbf{y} = [\underline{y}, \overline{y}]$.
+
+Arithmetic operations for intervals are defined:
+$$
+\mathbf{x} * \mathbf{y} = \{x * y : x \in \mathbf{x}, y \in \mathbf{y} \} 
+\mbox{ for } * \in \{ +,-,\times,\div\}
+$$
+
+Equivalently:
+
+$\mathbf{x} + \mathbf{y} = [\underline{x} + \underline{y}, 
+ \overline{x}+ \overline{y}]$
+
+$\mathbf{x}  - \mathbf{y} = [\underline{x}-\overline{y}, 
+ \overline{x}-\underline{y}]$
+
+$\mathbf{x}  \cdot \mathbf{y} = [\min(\underline{x}\underline{y},
+    \underline{x}\overline{y}, \overline{x}\underline{y},
+    \overline{x}\overline{y}),
+  \max(\underline{x}\underline{y}, \underline{x}\overline{y}, 
+       \overline{x}\underline{y}, \overline{x}\overline{y})]$
+
+$ 1 / \mathbf{y} = [1/\overline{y}, 1/\underline{y}], 
+      \quad 0 \notin \mathbf{y} $
+
+$\mathbf{x}  / \mathbf{y} = \mathbf{x} * (1/\mathbf{y}), \qquad  \notin \mathbf
+{y} $
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+Examples:
+$$[1,1] + [-2,5] = [-1,6]$$
+$$[-2,3] * [1,4] = [-8,12]$$
+
+Note:
+Subtraction and division are not the inverse of addition and multiplication.
+$$[0,1]-[0,1] = [-1,1]$$
+$$[1,2]/[1,2] = [0.5, 2]$$
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+
+Theorem: Rational interval functions are inclusion monotone, i.e. 
+${\bf f}({\bf x}) \subseteq  {\bf f}({\bf y})$ whenever ${\bf x} 
+\subseteq  {\bf y}$.
+
+
+$\bullet$ IEEE Floating Point Specifications \\
+Round to zero \\
+Round to nearest \\
+Round to $+\infty$ \\
+Round to $-\infty$ 
+
+Compute $ [1,1]/[3,3]$: \\
+$[\bigtriangledown(1/3),\bigtriangleup(1/3)] = [0.333,0.334]=[0.33_3^4]$
+
+$\bullet $ Ensures guaranteed enclosure for rational interval functions.
+
+$\bullet$ C++ BIAS/PROFIL (O. Knuppel, 1993)
+Operator overloading : ${\bf x}+{\bf y}$ \\
+Rounding mode control
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Dependency difficulties
+\end{center}
+Reduce the number of occurrences of a given interval in an expression.
+\\
+$\bullet$ Ex:  Suppose $\mathbf{x} = [-1,2]$. \\
+$\mathbf{x}^2 = \mathbf{x} \cdot \mathbf{x} = [-1,2] \cdot [-1,2] = [-2,4]$ 
+
+Fix this with an appropriate definition of $\mathbf{x}^2$ \\
+$\mathbf{x}^2 = \{ x^2 : x \in {\bf x} \}$ \\
+${\bf x}^2 = [0,4]$ 
+
+$\bullet$ Ex:  Two extensions of $f(x) = x^2 - x$ are: \\
+$\mathbf{f}_1 (\mathbf{x}) = \mathbf{x}^2 - \mathbf{x}$ \\
+$\mathbf{f}_2 (\mathbf{x}) = (\mathbf{x}-\frac{1}{2})^2 - \frac{1}{4}$ \\
+$\mathbf{f}_3 ({\bf x}) = {\bf x} ({\bf x} -1)$ 
+
+$\mathbf{f}_1([0,2]) = [-2,4]$ \\
+$\mathbf{f}_2([0,2]) = [- \frac{1}{4},2]$ \\
+${\bf f}_3([0,2]) = [-2,2]$
+\\
+The range of $f$ over $[0,2]$ is $[- \frac{1}{4},2]$.
+
+Replacing each occurrence of $x$ by $\mathbf{x}$ is called the {\it natural
+interval extension} of $f(x)$.\\
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Bivariate Chi-Square Applications
+\end{center}
+
+$\bullet$ Simultaneous inferences for variances
+
+$\bullet$ Simultaneous tests in ANOVA
+
+$\bullet$ Simultaneous tests for goodness of fit
+
+$\bullet$ Distribution of larger of correlated $\chi^2$-variates
+
+$\bullet$ Density of linear combination of independent $\chi^2$-variates
+
+See Gunst \& Webster, 1973; Jensen \& Howe, 1968
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Bivariate Chi-square distribution : Case I \\
+Gunst, 1973 
+\end{center}
+$(Z_{1i}, Z_{2i}), i = 1,\ldots,m $ independent \\
+$Z_{ij} \sim N(0,1)$ \\
+$Corr(Z_{1i},Z_{2i}) = \rho, 1=1,\ldots, m$ \\
+$Y_i = \sum_{j=1}^m Z_{ij}^2, i=1,2$ 
+
+$(Y_1, Y_2) \sim Biv \chi^2(m,m,m)$
+
+Density \\
+\begin{eqnarray*}
+%\label{pdf1}
+\lefteqn{f(y_1, y_2) = 
+  (1-\rho ^2)^{m/2} \sum_{j=0}^\infty \frac{\Gamma (\frac{m}{2}+j)
+  \rho^{2j} }{j! \Gamma (\frac{m}{2})} \times } \\
+ & & \frac{ (y_1 y_2)^{(m/2)+j-1} \exp [ -(y_1 + y_2) / 2(1-\rho^2)] }
+          { [ 2^{(m/2)+j} \Gamma(\frac{m}{2}+j) (1-\rho^2)^{(m/2+j)/2}]^2 }
+\end{eqnarray*}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Bivariate Chi-square distribution : Case I
+\end{center}
+
+Distribution \\
+\begin{eqnarray*}
+%\label{cdf1}
+\lefteqn{ P[Y_1 \leq d_1, Y_2 \leq d_2] = 
+  (1-\rho^2)^{m/2} \times } \\
+  & & \sum_{j=0}^\infty 
+  \frac{\Gamma (\frac{m}{2}+j)}{j! \Gamma (\frac{m}{2})}
+  \rho^{2j} 
+  \gamma( \frac{m}{2}+i , d_1^*)
+  \gamma( \frac{m}{2}+i , d_2^*)
+\end{eqnarray*}
+
+$\gamma(\alpha, d) = 
+          \int_0^d   \frac{1}{\Gamma(\alpha)} x^{\alpha -1} e^{-x} dx $
+
+$ d_j^* = d_j / (1-\rho^2_{12}) $.
+
+Let $P_t$ be the sum truncated at $t$
+
+Truncation error (Gunst, 1973)
+\begin{equation}
+\label{error1}
+0 \leq R_t \leq 1- (1-\rho^2)^{m/2}
+  \sum_{j=0}^t \frac{\Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2}) }
+  \rho^{2j} 
+\end{equation}
+
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+
+${\bf p}_t, {\bf r}_t$ interval extensions of $P_t, R_t$ 
+
+$P[Y_1 \leq d_1, Y_2 \leq d_2] = P_t + R_t$ for all $t$
+
+$\in [ \underline{\bf p}_t , \,
+       \overline{\bf p}_t + \overline{\bf r}_t]$ for all $t$
+
+$\bullet t $ determined by machine/software precision \\
+$\bullet$ Stopping rules \\
+${\bf r}_{t-1} = {\bf r}_t$ \\
+$ width({\bf r}_t) < \epsilon $
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Bivariate Chi-square distribution : Case II
+\end{center}
+$(Z_{1i}, Z_{2i}), i = 1,\ldots,m $ independent \\
+$Z_{2i}, i = m+1, \ldots, m+n$ \\
+$Z_{ij} \sim N(0,1)$ \\
+$Corr(Z_{1i},Z_{2i}) = \rho, 1=1,\ldots, m$ \\
+$Y_1 = \sum_{j=1}^m Z_{1j}^2, Y_2 = \sum_{j=1}^{m+n} Z_{2j}^2$
+
+$(Y_1, Y_2) \sim Biv \chi^2(m,m+n,m)$
+
+Distribution
+\begin{eqnarray*}
+\lefteqn{P[Y_1 \leq d_1, Y_2 \leq d_2, ] = } \\
+  & & (1-\rho^2)^{(m+n)/2} 
+	\sum_{j=0}^\infty \sum_{k=0}^\infty 
+	\frac{ \Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2})  }
+  \frac{ \Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2})  } \times \\
+  & & \rho^{2(j+k)} 
+	\gamma (\frac{m}{2}+j, d_1^* )  \gamma (\frac{n}{2}+k, d_2^* ) 
+\end{eqnarray*}
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+Truncation error
+
+\begin{eqnarray*}
+\lefteqn{R_{t_1, t_2} \leq 1- (1-\rho^2)^{m/2 + n/2} \times } \\
+  & & \sum_{j=0}^{t_1} \sum_{k=0}^{t_2} 
+  \frac{\Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2}) }
+  \frac{\Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2}) }
+  \rho^{2(j +k)} 
+\end{eqnarray*}
+
+$P[Y_1 \leq d_1, Y_2 \leq d_2] \in
+ [ \underline{\bf p}_{t_1,t_2} , \,
+	 \overline{\bf p}_{t_1,t_2} + \overline{\bf r}_{t_1,t_2}]$ 
+for all pairs $(t_1,t_2)$.
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Bivariate Chi-square distribution : Case III
+\end{center}
+$(Z_{1i}, Z_{2i}), i = 1,\ldots,m $ independent \\
+$Z_{1i}, i = m+1, \ldots, m+n$ \\
+$Z_{2i}, i = m+1, \ldots, m+p$ \\
+$Z_{ij} \sim N(0,1)$ \\
+$Corr(Z_{1i},Z_{1i}) = \rho, 1=1,\ldots, m$ \\
+$Y_1 = \sum_{j=1}^{m+n} Z_{1j}^2, Y_2 = \sum_{j=1}^{m+p} Z_{2j}^2$
+
+$(Y_1, Y_2) \sim Biv\chi^2(m+n,m+p,m)$
+
+Distribution
+\begin{eqnarray*}
+\lefteqn{P[Y_1 \leq d_1, Y_2 \leq d_2, ] =
+   (1-\rho^2)^{(m+n+p)/2} \times } \\
+ 	& & \sum_{j=0}^\infty \sum_{k=0}^\infty  \sum_{l=0}^\infty 
+ 	\frac{ \Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2})  }
+   \frac{ \Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2})  }
+   \frac{ \Gamma (\frac{p}{2}+l)}{ l! \Gamma (\frac{p}{2})  } \times \\
+  & & \rho^{2(j+k+l)} 
+	\gamma (\frac{m}{2}+\frac{n}{2}+k+j, d_1^* )  
+ \gamma (\frac{m}{2}+\frac{p}{2}+j+l, d_2^* )  
+\end{eqnarray*}
+
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+
+Truncation error
+
+\begin{eqnarray*}
+\lefteqn{ R_t \leq 1- (1-\rho^2)^{m/2 + n/2 + p/2} \times } \\
+   & & \sum_{j=0}^{t_1} \sum_{k=0}^{t_2} \sum_{l=0}^{t_3} 
+   \frac{\Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2}) }
+   \frac{\Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2}) }
+   \frac{\Gamma (\frac{p}{2}+l)}{ l! \Gamma (\frac{p}{2}) }
+   \rho^{2(j +k +l)} 
+\end{eqnarray*}
+
+$P[Y_1 \leq d_1, Y_2 \leq d_2] \in
+ [ \underline{\bf p}_{t_1,t_2,t_3} , \,
+	 \overline{\bf p}_{t_1,t_2, t_3} + \overline{\bf r}_{t_1,t_2, t_3}]$ 
+for all triples $(t_1,t_2, t_3)$
+\end{slide}
+
+%--------------------------------------------------------------------------
+
+\begin{slide}
+\begin{center}
+Critical points of distributions
+\end{center}
+
+$P(Y_1 \leq x, Y_2 \leq x)  - \alpha = 0$ \\
+
+$\bullet$ Intervalized Newton methods \\
+$\bullet$ Interval extension of $F$, $f$ \\
+
+Alternative: Derivative free method \\
+$\bullet$ Bracket-Secant / Illinois Modification \\
+Bracket-Secant stops too soon \\
+$\bullet$ Bisection \\
+
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\begin{picture}(200,220)
+% Horizontal line
+\put(0,100){\line(1,0){200}}
+% Functional curve
+\qbezier(10,50)(70,60)(100,100)
+\qbezier(100,100)(130,150)(190,170)
+\put(195,165){$F(x)$}
+% Left function tick mark
+\put(30,40){\line(0,1){25}}
+\put(35,40){${\bf F}(x_{i-1})$}
+% Right function tick
+\put(150,140){\line(0,1){20}}
+\put(155,140){${\bf F}(x_i)$}
+% Middle function tick
+\put(90,75){\line(0,1){30}}
+\put(95,75){${\bf F}(x_{i+1})$}
+\end{picture}
+\end{center}
+\begin{center}
+Termination of the bracket-secant
+\end{center}
+\begin{center}
+\begin{picture}(200,220)
+% Horizontal line
+\put(0,100){\line(1,0){200}}
+% Functional curve
+\qbezier(10,50)(70,60)(100,100)
+\qbezier(100,100)(130,150)(190,170)
+\put(195,165){$F(x)$}
+% Left function tick mark
+\put(85,70){\line(0,1){30}}
+\put(90,70){${\bf F}(x_L)$}
+% Right function tick
+\put(110,100){\line(0,1){30}}
+\put(115,105){${\bf F}(x_R)$}
+\end{picture}
+\end{center}
+\begin{center}
+Termination of the bisection portion
+\end{center}
+\end{slide}
+
+
+%--------------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+Upper 0.05 Percentile points of the Bivriate Chi-Square Distribution :
+Case I \\
+$(Y_1, Y_2) \sim Biv \chi^2(m,m,m)$
+\end{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{l|l|l|l}
+$\rho$ & m = 2 & m = 12 \\ \hline
+0.1  & $ 7.348735242636_{62}^{94} $ & $ 23.291675614644_3^9 $       \\
+0.2  & $ 7.337736654468_{52}^{73} $ & $ 23.279893907495_0^5  $      \\
+0.3  & $ 7.318116097295_{00}^{33} $ & $ 23.257752618706_3^8 $       \\
+0.4  & $ 7.28777721964_{197}^{231} $ & $ 23.22124105410_{13}^{20}  $ \\
+0.5  & $ 7.243389878426_{04}^{35} $ & $ 23.16405309924_{71}^{80}  $ \\
+0.6  & $ 7.179739084402_{01}^{47} $ & $ 23.07634122520_{07}^{18}  $ \\
+0.7  & $ 7.088168635581_{23}^{73} $ & $ 22.94173918779_{10}^{26}  $ \\
+0.8  & $ 6.95217862545_{462}^{561} $ & $ 22.72905146810_{03}^{28}  $ \\
+0.9  & $ 6.73002568707_{497}^{695} $ & $ 22.35957467992_0^6        $ \\
+\end{tabular}
+\end{center}
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+Upper 0.05 Percentile points of the Bivariate Chi-Square Distribution
+: Case II \\
+$(Y_1, Y_2) \sim Biv \chi^2(m,m+n,m)$
+\end{center}
+
+\begin{center}
+\begin{tabular}{l|l|l|l|l|l}
+$ m $ & $m+n$ & $\rho=0.2$ & $\rho=0.4$ \\ \hline
+8 & 10 & $19.25562949840_{57}^{83}$ &  $19.2145575272_{051}^{118}$ \\ 
+
+8 & 12 & $21.43987191019_{01}^{31}$ & $21.4161617406_{244}^{313}$ \\
+
+8 & 14 & $23.8527709314_{093}^{125}$ & $23.8412410690_{086}^{154}$ \\
+
+8 & 16 & $26.3613220302_{665}^{700}$ & $26.356264614_{7942}^{8028}$ \\
+
+8 & 18 & $28.89382780550_{57}^{93}$ & $28.8917353286_{657}^{768}$ \\
+\end{tabular}
+
+\begin{tabular}{l|l|l|l|l|l}
+$ m $ & $m+n$ & $\rho=0.6$ &  $\rho=0.8$ \\ \hline
+8 & 10 & $19.1173225955_{268}^{464}$ & $18.90189596_{29503}^{30341}$ \\ 
+
+8 & 12 & $21.3604107620_{460}^{625}$ & $21.243609643_{8388}^{9163}$ \\
+
+8 & 14 & $23.8140331030_{654}^{886}$ & $23.759702671_{5236}^{6459}$ \\
+
+8 & 16 & $26.3442149104_{419}^{735}$ & $26.321129600_{2338}^{3400}$ \\
+
+8 & 18 & $28.8866926661_{480}^{732}$ & $28.877401302_{4647}^{6241}$ \\
+\end{tabular}
+
+\end{center}
+
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\renewcommand{\arraystretch}{1.5}
+
+\begin{center}
+Upper 0.05 Percentile points of the Bivariate Chi-Square Distribution:
+Case III \\
+$(Y_1, Y_2) \sim Biv\chi^2(m+n,m+p,m)$
+\end{center}
+\begin{center}
+\begin{tabular}{l|l|l|l|l}
+$m$ & $n$  & $p$ & $\rho=0.4$ & $\rho=0.6$ \\ \hline
+7   & 1      & 11    & $28.892120984_{6487}^{7235} $ &
+$28.887920316_{3450}^{7461} $ \\
+6   & 2      & 12    & $28.8924903043_{190}^{928}  $ &
+$28.88907530_{39005}^{42914} $ \\
+5   & 3      & 13    & $28.892843220_{3506}^{4233} $ &
+$28.890155051_{1105}^{4641} $ \\
+4   & 4      & 14    & $28.893179676_{7852}^{8562} $ &
+$28.891157355_{1279}^{6196} $ \\
+3   & 5      & 15    & $28.893499628_{8498}^{9161} $ &
+$28.89208036_{88632}^{93269} $ \\
+2   & 6      & 16    & $28.893803042_{7961}^{8767} $ &
+$28.892922583_{0023}^{3886} $ \\
+1   & 7      & 17    & $28.894089895_{8055}^{9045} $ & $28.89368281_{09926}^{14038} $ \\
+\end{tabular}
+\end{center}
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+Conclusions
+
+
+$\bullet$ Theoretical error analysis \\
+$\bullet$ Rounding errors \\
+$\bullet$ Cancellation
+
+$\bullet$ Interval analysis \\
+$\bullet$ Guaranteed error bound \\
+$\bullet$ Improved Bivariate Chi-Square values \\
+$\bullet$ Corrections to previous tables \\
+
+$\bullet$ Further research in statistics
+
+$\bullet$ Univariate Distributions : Wang \& Kennedy, 1994
+
+\end{slide}
+%--------------------------------------------------------------------------
+\end{document}

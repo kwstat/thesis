@@ -1,0 +1,1172 @@
+% emtalk.tex 
+
+\documentclass{slides}
+\usepackage{graphics}
+\pagestyle{plain}
+
+\begin{document}
+
+\def\bfw{ {\bf w}}
+\def\bfx{{\bf x}}
+\def\bfy{{\bf y}}
+\def\bfOmega{\mbox{\boldmath $\Omega$}}
+\def\bfphi{\mbox{\boldmath $\phi$}}
+\def\bfPhi{\mbox{\boldmath $\Phi$}}
+\def\bfpi{\mbox{\boldmath $\pi$}}
+\def\bfmu{\mbox{\boldmath $\mu$}}
+\def\bfPhi{\mbox{\boldmath $\Phi$}}
+\def\bs{\begin{slide}}
+\def\es{\end{slide}}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+
+An Interval Analysis Approach to the EM Algorithm \\
+\vspace{1 in}
+
+Kevin Wright \\
+Pioneer Hi-Bred Int'l\\
+\vspace{0.5 in}
+William Kennedy\\
+Iowa State University\\
+
+\vspace{1 in}
+Interface, April 2000\\
+
+\vspace{.5 in}
+To appear in Journal of Computational and Graphical Statistics\\
+
+\end{center}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{note}
+Thanks for the arrangements of my visit.
+
+- Andreas Buja for inviting me
+
+- and the organizing committee for the planning
+
+\end{note}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{History of this research}
+\end{center}
+1966 {\it Interval Analysis} \\
+\hspace*{1in} Ramon Moore
+
+1977 EM Algorithm \\
+\hspace*{1in} Dempster, Laird \& Rubin
+
+1993 BIAS/PROFIL C++ software \\
+\hspace*{1in} Olaf Knuppel
+
+1994 {\it Self-Validating Computations of Probabilities for Selected
+        Central and Noncentral Univariate Probability Functions}\\
+\hspace*{1in} Wang \& Kennedy
+
+1999 Interval Analysis + EM Algorithm \\
+\hspace*{1in} Wright \& Kennedy
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{note}
+Interval Hammer
+\end{note}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Structure of the talk}
+\end{center}
+
+Introduction to Interval Analysis
+
+EM Algorithm
+
+Interval EM Algorithm
+
+Examples
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Interval Anaylsis (Moore, 1966, 1979)}
+\end{center}
+A real interval $x^I$ is defined 
+$x^I = [\underline{x},\overline{x}]$\\
+\\
+Arithmetic operations for intervals are defined:
+$$
+x^I * y^I = \{x * y : x \in x^I, y \in y^I \} 
+\mbox{ for } * \in \{ +,-,\times,\div\}
+$$
+\\
+Equivalently:
+
+$x^I + y^I = [\underline{x} + \underline{y}, 
+ \overline{x}+ \overline{y}]$
+
+$x^I  - y^I = [\underline{x}-\overline{y}, \overline{x}-\underline
+{y}]$
+
+$x^I  \cdot y^I = [\min(\underline{x}\underline{y},
+    \underline{x}\overline{y}, \overline{x}\underline{y},
+    \overline{x}\overline{y}),
+  \max(\underline{x}\underline{y}, \underline{x}\overline{y}, 
+       \overline{x}\underline{y}, \overline{x}\overline{y})]$
+
+$ 1 / y^I = [1/\overline{y}, 1/\underline{y}], \quad 0 \notin y^I 
+$
+
+$x^I  / y^I = x^I * (1/y^I), \qquad 0 \notin \mathbf
+{y} $
+\end{slide}
+
+%--------------------------------------------------------------------------
+
+\begin{slide}
+\begin{center}
+\underline{Examples of Interval Arithmetic}
+\end{center}
+$$[1,1] + [-2,5] = [-1,6]$$
+$$[-2,3] \times [1,4] = [-8,12]$$
+
+
+
+Note:
+Subtraction and division are not the \\
+inverse of addition and multiplication.
+$$[0,1]-[0,1] = [-1,1]$$
+$$[1,2]/[1,2] = [1/2, 2]$$
+
+Interval arithmetic is subdistributive only. \\
+
+Other functions are derived from Taylor series, periodicity properties,
+continued fractions, etc.
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Definitions}
+\end{center}
+{\it interval vector} or {\it box}: vector of intervals.
+
+{\it interval function} F: interval-valued function of one or more
+interval arguments. 
+
+{\it interval extension} $F$ of $f$:  (not unique)
+\begin{center}
+$F(x^I) = f(x)$ for $x^I = x$
+\end{center}
+
+Theorem: Rational interval functions are \\
+inclusion monotonic, i.e. 
+\begin{center}
+$x^I \subseteq  y^I$ $\Rightarrow$ $F( x^I) \subseteq  F(y^I)$
+\end{center}
+
+\es
+%--------------------------------------------------------------------------
+\bs
+\begin{center}
+\underline{Implementation}
+\end{center}
+
+$\bullet$ C++ BIAS/PROFIL software (Knuppel, 1993)\\
+\\
+Operator overloading : $x^I + y^I$\\
+Dynamic arrays\\
+Rounding mode control \\
+\\
+$\bullet$ IEEE Floating Point Specifications \\
+Round to $+\infty$ \qquad Round to zero \\
+Round to $-\infty$ \qquad Round to nearest 
+
+Compute $ [1,1]/[3,3]$: \\
+$[\bigtriangledown(1/3),\bigtriangleup(1/3)] = [0.333,0.334]=0.33_3^4$
+
+$\bullet $ Ensures guaranteed enclosure for rational \\
+interval functions.
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Dependency difficulties}
+\end{center}
+$\bullet$ Ex:  Suppose $x^I = [-1,2]$. \\
+$(x^I)^2 = x^I \cdot x^I = [-1,2] \cdot [-1,2] = [-2,4]$ 
+
+Fix this with an appropriate definition of $(x^I)^2$ \\
+$(x^I)^2 = \{ x^2 : x \in x^I \}$ \\
+$[-1,2]^2 = [0,4]$ 
+
+$\bullet$ Ex:  Three extensions of $f(x) = x^2 - x + 1$ \\
+$F_1 (x^I) = (x^I)^2 - x^I$ + 1\\
+$F_2(x^I) = x^I(x^I-1) + 1$ \\
+$F_3 (x^I) = (x^I-\frac{1}{2})^2 + \frac{3}{4}$ 
+
+$F_1([0,2]) = [-1,5]$ \\
+$F_2([0,2]) = [-1,3]$ \\
+$F_3([0,2]) = [\frac{3}{4},3]$   $\leftarrow$ True range of $f$
+
+Reduce the number of occurrences of a given interval in an expression.
+
+Replacing each occurrence of $x$ by $x^I$ is called the {\it natural
+interval extension} of $f(x)$.\\
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{picture}(600,580)
+
+%Vertical line
+\put(80,80){\line(0,1){500}}
+%Vertical axis ticks
+\put(76,180){\line(1,0){8}}  \put(50,170){$1$}
+\put(76,280){\line(1,0){8}}  \put(50,270){$2$}
+\put(76,380){\line(1,0){8}}  \put(50,370){$3$}
+\put(76,480){\line(1,0){8}}  \put(50,470){$4$}
+\put(76,580){\line(1,0){8}}  \put(50,570){$5$}
+%Horizontal axis
+\put(0,80){\line(1,0){450}}
+%Horizontal ticks
+\put(80,76){\line(0,1){8}}  \put(75,50){$0$}
+\put(180,76){\line(0,1){8}}  \put(175,50){$1$}
+\put(280,76){\line(0,1){8}}  \put(275,50){$2$}
+
+%Parabola
+\qbezier(30,254)(164,-14)(300,440)
+
+% X interval
+\put(80,30){\line(1,0){200}} % horizontal line
+\put(80,26){\line(0,1){8}}  % left hash
+\put(280,26){\line(0,1){8}} % right hash
+\put(140,0){$x^I=[0,2]$}
+
+%Vertical dashed lines
+\qbezier[100](80,30)(80,200)(80,380)
+\qbezier[100](280,30)(280,200)(280,380)
+
+% F1(X) interval
+\put(330,-20){\line(0,1){600}}   % Vertical line
+\put(326,-20){\line(1,0){8}}     % Lower tick
+\put(326,580){\line(1,0){8}}     % Upper tick
+\put(334,240){$F_1$}
+
+% F2(X) interval
+\put(380,-20){\line(0,1){400}}   % Vertical line
+\put(376,-20){\line(1,0){8}}
+\put(374,380){\line(1,0){8}}
+\put(386,240){$F_2$}
+
+% F3(X) interval
+\put(430,154){\line(0,1){226}}   % Vertical line
+\put(426,154){\line(1,0){8}}
+\put(426,380){\line(1,0){8}}
+\put(434,240){$F_3$}
+
+%Horizontal dashed lines
+\qbezier[100](80,380)(200,380)(330,380)
+\qbezier[100](80,154)(200,154)(330,154)
+
+\end{picture}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Algorithm Difficulties}
+\end{center}
+Example (Walster)
+$$y_i = \mu + \epsilon_i, \qquad \epsilon_i \sim (0,\sigma^2)$$
+Usual estimate: 
+$$
+\hat{\mu} = \frac{1}{n}\sum_1^n y_i
+$$
+If $-\delta < \epsilon_i < \delta$ for all $i$\\
+Form interval data $y^I_i = [y_i - \delta, y_i + \delta]$ \\
+Compute:
+$$ {\bar{y}^I} = [\bar{y} - \delta, \bar{y} + \delta]$$
+
+Alternatively,
+$\mu \in [y_i - \delta, y_i + \delta]$ for every $i$
+$$ \mu \in \cap_{i=1}^n [y_i - \delta, y_i + \delta] = 
+   [\max y_i - \delta , \min y_i + \delta]$$
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{The EM Algorithm}\\ Dempster, Laird, and Rubin (1977)
+\end{center}
+
+$\bullet$ Intuitive idea
+
+{\it Expectation step}: Replace missing values \\
+(sufficient statistics) by estimated values.\\
+\\
+{\it Maximization step}: Estimate parameters as if no data were missing.
+
+$\bullet$ Formally
+
+{\it E step}:  Use $\bfphi_p$ to calculate conditional \\
+expectation of the complete-data loglikelihood 
+$$
+q(\bfphi_p | \bfphi_p) = E_{\bfphi_p} \{ \log L_c(\bfphi) \}
+$$
+{\it M step}: Maximize $q(\bfphi | \bfphi_p)$ w.r.t. $\bfphi \in
+\Omega$\\
+i.e. $q(\bfphi_{p+1} | \bfphi_p) \geq q(\bfphi | \bfphi_p)$ for any 
+$\bfphi_{p+1} \in \Omega$.
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Features of EM}
+\end{center}
+
++ Handles missing data (Required)
+
++ Fairly general method, widely used 
+
+- Can be slow
+
+- Converges to ?\\
+\hspace*{.5in} Local minimum\\
+\hspace*{.5in} Local maximum\\
+\hspace*{.5in} Saddle point
+
+- Noncontiguous domains of attraction 
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Interval Arithmetic and EM}
+\end{center}
+
+Interval analysis used for global optimization (Hanson, Kearfott)
+
+EM involves optimization
+
+How to combine the two?
+
+1. Replace reals by intervals in algorithm
+
+2.  Maximize the $q$ function
+
+3. Interval analysis to perfom each M step
+
+4. Bisection and gradient check
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Overview of the Interval EM method}
+\end{center}
+Compute an interval which encloses the range
+of a function over a given domain.  
+
+Here, the gradient of the loglikelihood
+$$
+\left\{ \left. \frac{\partial\ell(\bfphi)}{\partial\bfphi}
+  \right|_{\bfphi = \bfphi_p} : \bfphi_p \in \bfphi^I \right\},
+$$
+
+Remove regions where the enclosure of the gradient does not contain zero
+
+Stationary points located in remaining regions
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{EM Algorithm}
+\end{center}
+Complete data (including missing data): $\bfx$ 
+
+Density: $f(\bfx|\bfphi)$, where $\bfphi \in \bfOmega$.  
+
+Observed data: $\bfy = \bfy(\bfx)$
+$$
+g(\bfy|\bfphi) = \int_{\bfx(\bfy)} f(\bfx|\bfphi)d\bfx.
+$$
+Wish to maximize $\bfphi$ in $\log f(\bfx|\bfphi)$
+
+However, $\bfx$ is unobservable
+
+Replace $\log f (\bfx|\bfphi)$ by its conditional \\expectation.  
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{EM}
+\end{center}
+Conditional density of $\bfx$ given $\bfy$ and $\bfphi$:\\
+$k(\bfx|\bfy,\bfphi) = f(\bfx|\bfphi) / g(\bfy|\bfphi)$
+$$
+\ell(\bfphi) = \log g(\bfy|\bfphi) = \log f(\bfx|\bfphi) - 
+  \log k(\bfx|\bfy,\bfphi).
+$$
+
+Conditional expectation (using $\bfphi_p$ as an \\
+estimate for $\bfphi$), 
+$$
+\ell(\bfphi) = E_{\bfphi_p} \left[\log f(\bfx|\bfphi) | \bfy \right] - 
+  E_{\bfphi_p} \left[ \log k(\bfx|\bfy,\bfphi) | \bfy \right]
+$$
+$$\ell(\bfphi) = q(\bfphi|\bfphi_p) - h(\bfphi|\bfphi_p)$$
+
+Maximize $\ell(\bfphi)$ by solving for $\bfphi$ in
+$$ 
+\frac{\partial \ell(\bfphi)}{\partial \bfphi} \equiv
+\frac{\partial q(\bfphi | \bfphi_p)}{\partial \bfphi} - 
+\frac{\partial h(\bfphi | \bfphi_p)}{\partial \bfphi} = 0
+$$
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}\underline{EM}\end{center}
+Now, $h(\bfphi | \bfphi_p) \leq h(\bfphi_p | \bfphi_p)$ for 
+any $\bfphi \in \bfOmega$
+$$\left.\frac{\partial h(\bfphi | \bfphi_p)}{\partial \bfphi}
+  \right|_{\bfphi=\bfphi_p}=0$$
+Need only solve
+$$ 
+\frac{\partial \ell(\bfphi)}{\partial \bfphi} \equiv 
+\frac{\partial q(\bfphi | \bfphi_p)}{\partial \bfphi} = 0
+$$
+
+Enclosure of the gradient of the $q$ function over the box $\bfphi^I$,
+$$
+\left\{ \left.\frac{\partial q(\bfphi | \bfphi_p)}{\partial\bfphi} 
+  \right|_{\bfphi=\bfphi_p} : \bfphi_p \in \bfphi^I \right\}
+$$
+in two steps:
+
+(1) With respect to the second argument\\
+(2) With respect to the first argument\\
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+Step (1)
+
+Let $Q'(\bfphi | \bfphi^I)$
+be an interval extension of 
+$\frac{\partial q(\bfphi|\bfphi_p)}{\partial\bfphi} $
+
+Implicitly, $Q'(\bfphi | \bfphi^I) \equiv [\underline{Q}'(\bfphi | \bfphi^I), \overline{Q}'(\bfphi | \bfphi^I)]$\\
+
+Step (2)
+
+Let $Q'_2(\bfphi^I | \bfphi^I)$ be an interval extension of
+$Q'(\bfphi | \bfphi^I)$.
+
+At each $\bfphi_p \in \bfphi^I$, the enclosure of the gradient of the
+log likelihood can be obtained by 
+$$
+\frac{\partial \ell(\bfphi)}{\partial \bfphi} \bigg| _{\bfphi=\bfphi_p} 
+= \frac{\partial q(\bfphi|\bfphi_p)}{\partial \bfphi} \bigg|
+_{\bfphi=\bfphi_p}$$  
+$$\in
+[\underline{Q}'(\bfphi_p | \bfphi^I), \overline{Q}'(\bfphi_p | \bfphi^I)]
+$$
+and
+$$
+\left\{ \left. \frac{\partial\ell(\bfphi)}{\partial\bfphi} 
+  \right|_{\bfphi = \bfphi_p} : \bfphi_p \in \bfphi^I \right\}
+\subset Q'_2(\bfphi^I | \bfphi^I).
+$$
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+(From previous page)
+$$
+\left\{ \left. \frac{\partial\ell(\bfphi)}{\partial\bfphi} 
+  \right|_{\bfphi = \bfphi_p} : \bfphi_p \in \bfphi^I \right\}
+\subset Q'_2(\bfphi^I | \bfphi^I).
+$$
+
+Therefore, $0 \notin Q'_2(\bfphi^I | \bfphi^I) 
+  \Rightarrow \bfphi^I$ cannot contain a local maximizer of $\ell(\bfphi)$ 
+
+Exclude $\bfphi^I$ from further consideration.
+
+Else, bisect $\bfphi^I$ and repeat until $\bfphi^I$ is small.
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Definition} 
+\end{center}
+An {\it interval GEM algorithm} on an interval \\
+vector $\bfPhi$ in a parameter space $\bfOmega$ is an iterative
+method which employs a sequence of intervals 
+$$\bfphi^I_0 \rightarrow  \bfphi^I_1 \rightarrow  \cdots
+\bfphi^I_p \rightarrow$$
+with respect to interval enclosures 
+$$
+Q(\bfphi | {\bfphi}^I_0), Q(\bfphi | {\bfphi}^I_1), \cdots, Q(\bfphi | {\bfphi}^I_p)
+$$
+of sets of functions 
+$$
+q(\bfphi | \bfphi_0), q(\bfphi | \bfphi_1), \cdots, q(\bfphi | \bfphi_p)
+$$
+where $\bfphi^I_{p+1}$ contains as least one value $\bfphi_{p+1}$ 
+$$
+q(\bfphi_{p+1} | \bfphi_p ) \geq q(\bfphi_p |\bfphi_p )
+$$
+
+Moving from $\bfphi_p^I$ to $\bfphi_{p+1}^I$ 
+is referred to
+as an {\it interval GEM step}.
+
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+% Page one
+One interval GEM step
+\begin{picture}(450,400)
+%Vertical line
+\put(0,20){\line(0,1){400}}
+
+%Horizontal line
+\put(0,20){\line(1,0){400}}
+%Put phi along horizontal axis
+\put(410,20){${\bfphi}$}
+
+%Example upper Q
+\qbezier[100](10,240)(100,400)(380,260)
+\put(410,260){$q(\bfphi|\bfphi_i)$}
+
+%Example lower Q
+\qbezier[100](10,80)(250,220)(380,120)
+\put(410,120){$q(\bfphi|\bfphi_j)$}
+
+\end{picture}
+\end{center}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+% Page two
+One interval GEM step
+\begin{picture}(450,400)
+%Vertical line
+\put(0,20){\line(0,1){400}}
+
+%Horizontal line
+\put(0,20){\line(1,0){400}}
+%Put phi along horizontal axis
+\put(410,20){${\bfphi}$}
+
+%Upper Q enclosure
+\qbezier(10,340)(100,400)(380,340)
+\put(410,340){$\overline{Q}(\bfphi|\bfphi^I_k)$}
+
+%Example upper Q
+\qbezier[100](10,240)(100,400)(380,260)
+\put(410,260){$q(\bfphi|\bfphi_i)$}
+
+%Example lower Q
+\qbezier[100](10,80)(250,220)(380,120)
+\put(410,120){$q(\bfphi|\bfphi_j)$}
+
+%Lower Q enclosure
+\qbezier(10,60)(320,160)(380,100)
+\put(410,80){$\underline{Q}(\bfphi|\bfphi^I_k)$}
+
+\end{picture}
+\end{center}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+% Page three
+One interval GEM step
+\begin{picture}(450,400)
+%Vertical line
+\put(0,20){\line(0,1){400}}
+
+%Horizontal line
+\put(0,20){\line(1,0){400}}
+%Put phi along horizontal axis
+\put(410,20){${\bfphi}$}
+
+%Upper Q enclosure
+\qbezier(10,340)(100,400)(380,340)
+\put(410,340){$\overline{Q}(\bfphi|\bfphi^I_k)$}
+
+%Example upper Q
+\qbezier[100](10,240)(100,400)(380,260)
+\put(410,260){$q(\bfphi|\bfphi_i)$}
+
+%Example lower Q
+\qbezier[100](10,80)(250,220)(380,120)
+\put(410,120){$q(\bfphi|\bfphi_j)$}
+
+%Lower Q enclosure
+\qbezier(10,60)(320,160)(380,100)
+\put(410,80){$\underline{Q}(\bfphi|\bfphi^I_k)$}
+
+% Phi_ k-1
+\put(120,18){\line(0,-1){10}}
+\put(120,14){\line(1,0){200}}
+\put(320,18){\line(0,-1){10}}
+\put(210,-8){$\bfphi_{k}^I$}
+
+% Q(phi_k1)
+\put(120,90){\line(1,0){200}}  
+\put(220,90){\line(0,1){280}}
+\put(120,370){\line(1,0){200}}
+\put(3,200){$Q(\bfphi_{k}^I|\bfphi_{k}^I)$}
+
+\end{picture}
+\end{center}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+One interval GEM step
+\begin{picture}(450,400)
+%Vertical line
+\put(0,20){\line(0,1){400}}
+
+%Horizontal line
+\put(0,20){\line(1,0){400}}
+%Put phi along horizontal axis
+\put(410,20){${\bfphi}$}
+
+%Upper Q enclosure
+\qbezier(10,340)(100,400)(380,340)
+\put(410,340){$\overline{Q}(\bfphi|\bfphi^I_k)$}
+
+%Example upper Q
+\qbezier[100](10,240)(100,400)(380,260)
+%\put(410,260){$q(\bfphi|\bfphi_i)$}
+
+%Example lower Q
+\qbezier[100](10,80)(250,220)(380,120)
+%\put(410,120){$q(\bfphi|\bfphi_j)$}
+
+%Lower Q enclosure
+\qbezier(10,60)(320,160)(380,100)
+\put(410,80){$\underline{Q}(\bfphi|\bfphi^I_k)$}
+
+% Phi_k1 
+\put(120,18){\line(0,-1){10}}
+\put(120,14){\line(1,0){100}}
+\put(220,18){\line(0,-1){10}}
+\put(140,-8){$\bfphi_{k+1,1}^I$}
+
+% Q(phi_k1)
+\put(120,90){\line(1,0){100}}  
+\put(170,90){\line(0,1){280}}
+\put(120,370){\line(1,0){100}}
+\put(3,200){$Q(\bfphi_{k+1,1}^I|\bfphi_{k+1,1}^I)$}
+
+% Phi_k2
+\put(220,18){\line(0,-1){10}}
+\put(220,14){\line(1,0){100}}
+\put(320,18){\line(0,-1){10}}
+\put(240,-8){$\bfphi_{k+1,2}^I$}
+
+%Q(phi_k2)
+\put(220,110){\line(1,0){100}}
+\put(270,110){\line(0,1){260}}
+\put(220,370){\line(1,0){100}}
+\put(290,200){$Q(\bfphi_{k+1,2}^I|\bfphi_{k+1,2}^I)$}
+
+\end{picture}
+\end{center}
+
+$\overline{Q}(\phi|\phi^I_k)$ 
+and  $\protect\underline{Q}(\phi|\phi^I_k)$ bound the extent
+of the interval-valued function $Q(\phi|\phi^I_k)$\\
+while $q(\phi|\phi_i)$ and 
+$q(\phi|\phi_j)$ are example scalar functions
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{ALGORITHM: Bisection Interval EM Search}
+\end{center}
+
+Initialize list $\mathcal{G}$ with interval box $\bfphi^I_0$
+
+i := 0
+
+REPEAT
+
+\quad  i := (i + 1) mod m
+
+\quad  FOR j = 1 TO Length($\mathcal{G}$)
+    
+\quad \quad Remove the first box from $\mathcal{G}$.  Call it $\bfphi^I$
+
+\quad \quad Bisect $\bfphi^I$ along the $i^{th}$ direction,\\
+\hspace*{1.75cm}creating $\bfphi^I_1$ and $\bfphi^I_2$
+
+\quad\quad If $0 \in Q'_2(\bfphi^I_k|\bfphi^I_k)$, append $\bfphi^I_k$ to $\mathcal{G}$, $k=1,2$
+
+\quad NEXT
+
+UNTIL $\mathcal{G}$ is empty or maximum diameter of boxes $\leq \epsilon$
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Comments}
+\end{center}
+$\bullet$ Limited to $\bfphi_0^I \subset \Omega$
+
+$\bullet$ $\bfphi_0^I$ can be quite large
+
+$\bullet$ Data places practical limits on $\bfphi_0^I$
+
+$\bullet$ Measurement error $x^I = [x_i-\delta, x_i + \delta]$
+
+$\bullet$ Rounding uncertainty $\pi = [3.14, 3.15]$
+
+$\bullet$ Many simultaneous interval GEM algorithms.
+
+$\bullet$ Bisection of just one box from $\mathcal{G}$ has the potential to 
+ create $2^m$ additional boxes
+
+\end{slide}
+%--------------------------------------------------------------------------
+% \begin{slide}
+% \begin{center}
+% \underline{Alternate method}
+% \end{center}
+
+
+
+% $\bullet$ Flat likelihood (gradient near zero)
+
+% $\bullet$ Many stationary points
+
+% $\bullet$ High dimension
+
+
+% \begin{center}
+% Change the order in which  $\mathcal{G}$ is processed
+% \end{center}
+
+% Prepend boxes to  $\mathcal{G}$ instead of appending
+
+% $\bullet$ Quickly shrinks a box
+
+% $\bullet$ Loss of guarantee
+
+% $\bullet$ Useful for obtaining an approximate answer to feed into the full
+% bisection method
+
+% \end{slide}
+% %--------------------------------------------------------------------------
+% \begin{slide}
+% \underline{ALGORITHM: Quick Interval EM Search}
+
+% Input an initial box $\bfphi^I_0$ and place it as the only element of the list
+% $\mathcal{G}$.
+
+% Input $\epsilon$
+
+% REPEAT
+
+%   \quad Remove the first box from $\mathcal{G}$.  Call it $\bfphi^I$
+
+%   \quad   Bisect $\bfphi^I$ along the direction of maximum width,
+%   creating $\bfphi^I_1$ and $\bfphi^I_2$
+
+%   \quad   If $0 \in Q'_2(\bfphi^I_k|\bfphi^I_k)$, prepend $\bfphi^I_k$ to
+%   $\mathcal{G}$, $k=1,2$
+
+% UNTIL $\mathcal{G}$ is empty or the first box of
+%   $\mathcal{G}$ has maximum diameter $ \leq \epsilon$
+% \end{slide}
+%--------------------------------------------------------------------------
+\begin{note}
+Note that the following examples each have an algebraic, real expression for
+$q(\bfphi | \bfphi_k)$.  This is consistent with traditional EM notation. 
+Though not shown, a person would then determine an expression for the gradient
+of this function with respect to $\bfphi$, $q'(\bfphi | \bfphi_k)$, and then
+express $q'(\bfphi_k | \bfphi_k)$ in as simple a way as possible.  This is
+coded in the program as $Q'_2(\bfphi_k | \bfphi_k)$.
+\end{note}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center} 
+\underline{Example: Multinomial (Dempster, et. al)}
+\end{center}
+197 animals 
+$$\mathbf{y} = (y_1, y_2, y_3, y_4) = (125, 18, 20, 34)$$
+$$
+Y \sim Multinom\left(197, \frac{1}{2} + \frac{1}{4} p,    
+  \frac{1}{4} - \frac{1}{4} p, 
+  \frac{1}{4} - \frac{1}{4} p, \frac{1}{4} p \right)
+$$ 
+
+Possible: estimate $p$ with ML.  
+
+Example: Introduce missing data.
+$$
+X \sim Multinomial\left(197, \frac{1}{2}, \frac{1}{4}p, 
+  \frac{1}{4} - \frac{1}{4} p , 
+  \frac{1}{4} - \frac{1}{4} p , \frac{1}{4} p\right)
+$$
+Incomplete data: $\bfx = (x_1, x_2, x_3, x_4, x_5) $ \\
+$ \mathbf{y}(\bfx ) = (x_1 + x_2, x_3, x_4, x_5)$
+
+$
+q(p | p_k) = k(\bfx) +
+$
+$$
+\left[125\frac{\frac{p_k}{4}}{\frac{1}{2}+\frac{p_k}{4}}+x_5
+\right]\frac{1}{p} - 
+(x_3 + x_4) \frac{1}{1-p}
+$$
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\resizebox{15 cm}{15 cm} {\includegraphics{mult.qfun.ps}}
+
+Plot of $Q(p|p_0^I)$ versus $p$ for $p_0^I=[0.1,0.9]$.
+\end{center}
+\end{slide}
+
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Interval EM results}
+\end{center}
+$p_0^I=[0.1,0.2]$, 
+
+\begin{verbatim}
+Gradient of Q(Phi|Phi_k) = ([152.262,411.414])
+Gradient of likelihood does not contain zero.
+No stationary point in ([0.1,0.2])
+\end{verbatim}
+
+$p_0^I = [.00001,.99999]$
+
+Final list $\mathcal{G}$:
+$$y_1 = 0.626821497870982_4^5.$$
+$$y_2 = 0.626821497870982_3^4$$
+Any stationary points of the log-likelihood are guaranteed to be
+contained in the {\it hull} of the boxes in the list $\mathcal{G}$.  
+
+Scalar estimate: $\hat{p} = 0.6268214978709824$.
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Example: Univariate t  (McLachlan / Arslan)}
+\end{center}
+Show scalar EM algorithm converging to a \\
+local {\it minimum}.  
+
+${\bf W} \sim t_p(\bfmu, \Sigma, \nu)$
+
+$
+f_p(\bfw | \bfmu, \Sigma, \nu) = 
+$
+$$\frac{\Gamma(\frac{p+\nu}{2})|\Sigma|^{-1/2}}
+  {(\pi \nu)^{p/2} \Gamma(\frac{\nu}{2}) 
+  \{ 1 + (\bfw-\bfmu)^T\Sigma^{-1}(\bfw-\bfmu) / \nu\}^{(p+\nu)/2}}
+$$
+
+Take $\nu=0.05$, $\Sigma=1$, $\mu$ unknown.  
+
+Observed data is ${\bf w}=(-20,1,2,3)$. 
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Likelihood plot}
+
+$\log L(\mu) \propto -\sum_i \log \{1+20(w_i - \mu)\}$
+\resizebox{15 cm}{15 cm} {\includegraphics{uni_t.ps}}
+Plot of log likelihood function log $L(\mu)$ versus $\mu$.  Local 
+maxima occur at $\mu_1= -19.993$, $\mu_2= 1.086$, $\mu_3=1.997$, 
+and $\mu_4=2.906$
+\end{center}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{note}
+Seven stationary points.  
+
+This is complete data problem.  
+
+Could graph and visually choose starting values that
+cause EM to converge to each stationary point.
+
+Domain of attraction is not contiguous
+\end{note}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Enclosures of stationary points}
+\end{center}
+$\mu_0 = [-1000,1000]$
+
+Bisection algorithm completes 59 bisections\\
+$\mathcal{G}$ scarcely longer than the 20 boxes at end
+\renewcommand{\arraystretch}{1.65}
+\begin{center}
+\begin{tabular}{c|c|c}
+$i$ & $\bfphi_{S_i}$ & $Q(\bfphi_{S_i}|\bfphi_{S_i})$ \\ \hline
+$1$ & $ -19.993164608871_{30}^{29} $  & $ -1.57532666279595_{7}^{4} $ \\
+$2$ & $ -14.5161774794253_{2}^{0} $  & $ -2.098837787645_{302}^{297} $ \\
+$3$ & $ 1.08616780631075_{0}^{7} $  & $ -1.606093870388_{426}^{397} $ \\
+$4$ & $ 1.3731761015634_{18}^{32} $  & $ -1.89224275084_{3016}^{2981} $ \\
+$5$ & $ 1.9975126089118_{17}^{24} $  & $ -1.525009886703_{402}^{386} $ \\
+$6$ & $ 2.6468546770426_{20}^{35} $  & $ -1.884158362286_{208}^{176} $ \\
+$7$ & $ 2.9056308944679_{75}^{85} $  & $ -1.617024174245_{707}^{677} $ \\
+\end{tabular}
+\end{center}
+\renewcommand{\arraystretch}{1.00}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{note}
+
+Length(G) = 20 boxes.  
+
+Manually grouped and hulled.
+
+Which are max / min /saddle?
+
+Evaluate gradient on either side of stationary point.
+
+\end{note}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Example: Binomial-Poisson Mixture (Thisted)}
+\end{center}
+Number of children per widow in a pension fund.
+\begin{center}
+\begin{tabular}{l|c|c|c|c|c|c|c}
+$Y_i$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 \\ \hline
+$n_i$ & 3062 & 587 & 284 & 103 & 33 & 4 & 2
+\end{tabular}
+\end{center}
+
+\begin{equation}
+Y \sim \left\{ \begin{array}{ll}
+0 & \mbox{with probability } \xi \\ \nonumber
+Poisson(\lambda) & \mbox{with probability } 1-\xi  \nonumber
+\end{array}\right.
+\end{equation}
+
+With $\bfphi=(\lambda,\xi)$, M-step maximizes:
+
+$
+q(\bfphi|\bfphi_k) = \frac{n_0 \xi_k}{\xi_k + (1-\xi_k)\exp(-\lambda_k)}
+\left\{ \log\left(\frac{\xi}{1-\xi}\right) +\lambda \right\} + 
+$
+$$
+N \left\{ \log (1-\xi) - \lambda \right\}
++ \sum_{i=1}^6 \left\{ i n_i \log \lambda - n_i \log i! \right\}
+$$
+
+Examine data.  Choose
+$$\bfphi_0 = (\lambda_0^I, \xi_0^I) = ([0.001,10],[0.001,0.999])$$ 
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Results}
+\end{center}
+
+Bisection search: 52 bisections $\bfphi$ in both \\
+directions
+
+List $\mathcal{G}$ contains 82 boxes.  First and last:
+$$y_1 = (1.0378390789897_{57}^{60}, 0.61505669757312_{12}^{14})$$
+$$y_{82} = (1.0378390789897_{77}^{80}, 0.61505669757312_{88}^{90}).$$
+
+The hull of the boxes on this list is:
+$$
+\bfphi_{S_1} = (1.0373890789897_{57}^{80},  0.61505669757312_{12}^{90})
+$$
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{note}
+Not important: extremely accuate
+
+Important: guarantee that inside the intial box, we found the only
+stationary points (if any)
+
+IF scalar EM algorithm converges to some stationary point in
+$\bfphi_0$, that point will be inside $\bfphi_{S_1}$.
+
+\end{note}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Example: Genetic (McLachlan et. al)}
+\end{center}
+
+435 observations from a multinomial dist'n
+\renewcommand{\arraystretch}{1.50}
+\begin{center}
+\begin{tabular}{ccc}
+&     Cell         &  Observed \\
+Cell & Probability & Frequency \\ \hline
+O  & $r^2$ & $n_O = 176$ \\
+A  & $p^2 + 2pr$ & $n_A = 182$ \\
+B  & $q^2 + 2qr$ & $n_B = 60$ \\
+AB & $2pq$ & $n_{AB} = 17$ \\
+\end{tabular}
+\end{center}
+\renewcommand{\arraystretch}{1.0}
+
+Where $r= 1-p-q$ and $\bfphi = (p,q)$.\\
+Missing data: split the A and B cells 
+
+$q(\bfphi|\bfphi_k) = \left(\frac{182}{1+2(1-p_k-q_k)/p_k} + 199\right) \log(p) +$\\
+$\left(\frac{60}{1+2(1-p_k-q_k)/q_k} + 77\right) \log(q) +$ \\
+$\left( 594 - \frac{182}{1+2\frac{1-p_k-q_k}{p_k}} -
+\frac{60}{1+2\frac{1-p_k-q_k}{q_k}}\right) \log(1-p-q)
+$
+\es
+%--------------------------------------------------------------------------
+\bs
+\begin{center}
+\underline{Single starting region not always possible}
+\end{center}
+
+Some combinations of $p^I$ and $q^I$ cause \\
+division by zero error.  
+
+The gradient does not exist along the lines 
+\begin{center}
+$p=0$ \quad $q=0$\\
+$q=2-2p$ \quad $2q=2-p$\\
+$1-p-q=0$
+\end{center}
+Software can trap division by zero errors\\
+Mark such boxes until further processed
+
+Alternative: smaller initial region
+
+$\bfphi_0: (p_0,q_0) =([0.00001,0.45],[0.00001,0.45])$ 
+
+$\bfphi_S:\\ (0.2644443138466_{694}^{706} ; 0.09316881181568_{122}^{200}$).
+\es
+%--------------------------------------------------------------------------
+
+%\begin{picture}(450,400)
+%%Vertical line
+%\put(0,20){\line(0,1){400}}
+
+%%Horizontal line
+%\put(0,20){\line(1,0){400}}
+%%Put phi along horizontal axis
+%\put(410,20){$p$}
+
+%\end{picture}
+%\end{slide}
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Example: Multinomial (continued)}
+\end{center}
+For the incomplete-data problem
+$$(X_2 | X_1 + X_2 = 125) \sim
+   Binomial \left(125, \frac{\frac{1}{4}p}{\frac{1}{2}+\frac{1}{4}p}\right)$$ 
+E-Step in the usual scalar EM algorithm is
+$$x_{1,k} = 125\left( \frac{1}{2}\right) \bigg{/} 
+  \left(\frac{1}{2}+\frac{1}{4}p\right)$$ 
+$$x_{2,k} = 125\left( \frac{1}{4}p\right) /
+  \left(\frac{1}{2}+\frac{1}{4}p\right)$$
+
+From the complete-data likelihood of $p$,
+$$ f(p|\mathbf{x}) \propto 
+   \left(\frac{1}{2}\right)^{x_{1,k}} \left(\frac{1}{4}p\right)^{x_{2,k}} 
+   \left(\frac{1}{4}- \frac{1}{4} p\right)^{x_3 + x_4} 
+   \left(\frac{1}{4} p\right)^{x_5} $$
+
+M-Step in the usual scalar EM algorithm is:
+$$
+p_k = \frac{x_{2,k} + x_4}{x_{2,k} + x_3 + x_4 + x_5}
+         =  \frac{x_{2,k} + 34}{x_{2,k} + 72} .
+$$
+\end{slide} 
+%--------------------------------------------------------------------------
+\begin{slide}
+\begin{center}
+\underline{Scalar real EM algorithm iterates}
+\end{center}
+\begin{verbatim}
+Epsilon:    1e-07
+Initial p: 0.5
+Iter      p         x2       
+1     0.608247   25
+2     0.624321   29.1502
+3     0.626489   29.7373
+4     0.626777   29.8159
+5     0.626816   29.8263
+6     0.626821   29.8277
+7     0.626821   29.8279
+8     0.626821   29.8279
+\end{verbatim}
+$p_0= 0.5$ halfway between 0 and 1
+
+What happens for other $p_0$?
+\end{slide}
+%--------------------------------------------------------------------------
+\renewcommand{\baselinestretch}{1}
+\begin{slide}
+\begin{center}
+\underline{Scalar EM algorithm using interval arithmetic}
+\end{center}
+$$
+x^I_{2,k} = \frac{125.0}{2 / p_k^I+1} \mbox{ \quad and \quad}
+p^I_k = 1 - \frac{38}{x_{2,k}^I + 72}
+$$
+$p_0^I = [\epsilon,1]$ 
+\begin{verbatim}
+Epsilon:   1e-07
+Initial p: [4.94066e-324,1]
+i           p                  x2
+1   [0.472222,0.665689]   [      0,41.6667]
+2   [0.603656,0.631839]   [23.8764,31.2156]
+3   [0.623692,0.627485]   [28.9812,30.0094]
+4   [0.626405,0.626910]   [29.7144,29.8520]
+5   [0.626766,0.626833]   [29.8129,29.8311]
+6   [0.626814,0.626823]   [29.8259,29.8284]
+7   [0.626821,0.626822]   [29.8277,29.8280]
+8   [0.626821,0.626822]   [29.8279,29.8280]
+9   [0.626821,0.626822]   [29.8279,29.8279]
+\end{verbatim}
+\end{slide}
+%--------------------------------------------------------------------------
+\begin{note}
+$\bullet$ Iteration count not highly dependent on starting value.
+
+$\bullet$ Simultaneous consideration of all starting values 
+\end{note}
+%--------------------------------------------------------------------------
+\bs
+\begin{center}
+\underline{Conclusions}
+\end{center}
+
+Interval EM algorithm can achieve
+
+$\bullet$ Guaranteed enclosure of all stationary \\
+points within $\bfphi_0^I$.
+
+$\bullet$ High degree of accuracy
+\es
+
+
+\end{document}

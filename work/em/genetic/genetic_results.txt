@@ -1,0 +1,91 @@
+Iter: 0 CurrBoxCount: 1 TotBoxCount: 1
+Iter: 1 CurrBoxCount: 2 TotBoxCount: 3
+Iter: 2 CurrBoxCount: 2 TotBoxCount: 5
+Iter: 3 CurrBoxCount: 2 TotBoxCount: 7
+Iter: 4 CurrBoxCount: 2 TotBoxCount: 9
+Iter: 5 CurrBoxCount: 2 TotBoxCount: 11
+Iter: 6 CurrBoxCount: 4 TotBoxCount: 15
+Iter: 7 CurrBoxCount: 3 TotBoxCount: 18
+Iter: 8 CurrBoxCount: 2 TotBoxCount: 20
+Iter: 9 CurrBoxCount: 1 TotBoxCount: 21
+Iter: 10 CurrBoxCount: 2 TotBoxCount: 23
+Prev Hull of GridList: ([0.01,0.49] ; [0.01,0.49])
+Curr Hull of GridList: 
+  ([0.2640625000000001,0.2650000000000001] ; 
+   [0.09296875000000006,0.09343750000000006])
+
+Iter: 11 CurrBoxCount: 3 TotBoxCount: 26
+Iter: 12 CurrBoxCount: 2 TotBoxCount: 28
+Iter: 13 CurrBoxCount: 1 TotBoxCount: 29
+Iter: 14 CurrBoxCount: 3 TotBoxCount: 32
+Iter: 15 CurrBoxCount: 2 TotBoxCount: 34
+Iter: 16 CurrBoxCount: 2 TotBoxCount: 36
+Iter: 17 CurrBoxCount: 2 TotBoxCount: 38
+Iter: 18 CurrBoxCount: 1 TotBoxCount: 39
+Iter: 19 CurrBoxCount: 2 TotBoxCount: 41
+Iter: 20 CurrBoxCount: 4 TotBoxCount: 45
+
+Curr Hull of GridList: 
+  ([0.264443817138672,0.2644447326660158] ; 
+  [0.09316833496093757,0.09316925048828133])
+
+Iter: 21 CurrBoxCount: 3 TotBoxCount: 48
+Iter: 22 CurrBoxCount: 2 TotBoxCount: 50
+Iter: 23 CurrBoxCount: 2 TotBoxCount: 52
+Iter: 24 CurrBoxCount: 1 TotBoxCount: 53
+Iter: 25 CurrBoxCount: 2 TotBoxCount: 55
+Iter: 26 CurrBoxCount: 1 TotBoxCount: 56
+Iter: 27 CurrBoxCount: 2 TotBoxCount: 58
+Iter: 28 CurrBoxCount: 2 TotBoxCount: 60
+Iter: 29 CurrBoxCount: 1 TotBoxCount: 61
+Iter: 30 CurrBoxCount: 2 TotBoxCount: 63
+
+Curr Hull of GridList: 
+  ([0.2644443133473399,0.2644443142414095] ; 
+  [0.09316881150007258,0.09316881194710742])
+
+Iter: 31 CurrBoxCount: 2 TotBoxCount: 65
+Iter: 32 CurrBoxCount: 2 TotBoxCount: 67
+Iter: 33 CurrBoxCount: 2 TotBoxCount: 69
+Iter: 34 CurrBoxCount: 2 TotBoxCount: 71
+Iter: 35 CurrBoxCount: 2 TotBoxCount: 73
+Iter: 36 CurrBoxCount: 3 TotBoxCount: 76
+Iter: 37 CurrBoxCount: 2 TotBoxCount: 78
+Iter: 38 CurrBoxCount: 2 TotBoxCount: 80
+Iter: 39 CurrBoxCount: 2 TotBoxCount: 82
+Iter: 40 CurrBoxCount: 4 TotBoxCount: 86
+Prev Hull of GridList: ([0.2644443133473399,0.2644443142414095] ; [0.09316881150007258,0.09316881194710742])
+Curr Hull of GridList: ([0.2644443138463251,0.2644443138471982] ; [0.09316881181526709,0.0931688118161402])
+
+Iter: 41 CurrBoxCount: 3 TotBoxCount: 89
+Iter: 42 CurrBoxCount: 3 TotBoxCount: 92
+Iter: 43 CurrBoxCount: 2 TotBoxCount: 94
+Iter: 44 CurrBoxCount: 2 TotBoxCount: 96
+Iter: 45 CurrBoxCount: 2 TotBoxCount: 98
+Iter: 46 CurrBoxCount: 3 TotBoxCount: 101
+Iter: 47 CurrBoxCount: 2 TotBoxCount: 103
+Iter: 48 CurrBoxCount: 3 TotBoxCount: 106
+Iter: 49 CurrBoxCount: 3 TotBoxCount: 109
+Iter: 50 CurrBoxCount: 3 TotBoxCount: 112
+
+Curr Hull of GridList: 
+  ([0.2644443138466692,0.2644443138466705] ; 
+  [0.09316881181568148,0.09316881181568192])
+
+Iter: 51 CurrBoxCount: 6 TotBoxCount: 118
+Iter: 52 CurrBoxCount: 8 TotBoxCount: 126
+Iter: 53 CurrBoxCount: 25 TotBoxCount: 151
+Iter: 54 CurrBoxCount: 68 TotBoxCount: 219
+
+Curr Hull of GridList: 
+  ([0.2644443138466697,0.2644443138466701] ; 
+  [0.0931688118156816,0.09316881181568182])
+
+Iter: 55 CurrBoxCount: 207 TotBoxCount: 426
+Iter: 56 CurrBoxCount: 692 TotBoxCount: 1118
+Iter: 57 CurrBoxCount: 2502 TotBoxCount: 3620
+Iter: 58 CurrBoxCount: 9482 TotBoxCount: 13102
+Iter: 59 CurrBoxCount: 36882 TotBoxCount: 49984
+
+Curr Hull of GridList: ([0.2644443138466697,0.2644443138466701] ; [0.09316881181568161,0.0931688118156818])
+

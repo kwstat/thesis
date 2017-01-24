@@ -1,0 +1,4 @@
+
+This folder contains some exploratory work for computing complex normal distribution values.
+
+Not included in the dissertation.

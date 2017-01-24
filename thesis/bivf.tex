@@ -1,0 +1,347 @@
+% bivf.tex
+
+%\bibliographystyle{apalike}
+%\specialchapt{SELF-VALIDATED CRITICAL POINTS OF A 
+%BIVARIATE F DISTRIBUTION}
+\chapter{SELF-VALIDATED CRITICAL POINTS OF A 
+BIVARIATE F DISTRIBUTION}
+
+%\paperinfo{to be submitted to Communications in Statistics}
+%\paperauthor{Kevin Wright and William Kennedy}
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+
+Self-validated computations using interval arithmetic produce results with a
+guaranteed error bound.  This article presents methods for self-validated
+computation of probabilities and percentile points of a bivariate $F$
+distribution.  For the computation of critical points
+$(c_1, c_2)$ in $P(Y_1 \leq c_1, Y_2 \leq c_2) = 1-\alpha$, the case $c_1 =
+c_2$ is considered.  A combination of interval bracket-secant and bisection
+algorithms is utilized for finding enclosures of the percentile points of the
+distribution.
+
+%% \setcounter{chapter}{1}
+%% \setcounter{figure}{0}
+%% \setcounter{section}{0}
+%% \setcounter{subsection}{1}
+%% \setcounter{equation}{0}
+%% \setcounter{table}{0}
+%--------------------------------------------------------------------------
+
+
+\section{Introduction}
+
+A multivariate $F$ distribution, though not common, has useful applications in
+statistics. \cite{Krishnaiah75} point out its use in hypothesis testing under
+fixed-effects models, in certain two-way classification models, and in
+simultaneous testing of no treatment and block effects in symmetrical balanced
+incomplete block designs.  Tables for percentage points of a multivariate $F$
+distribution have appeared most recently in \cite{Krishnaiah80}.  
+
+Frequently implicit in the calculation of tables for critical points of 
+statistical distributions
+is the assumption that numerical error does not invalidate the
+results. 
+By using the techniques of interval analysis, it is possible to
+produce tables which are guaranteed to be free of rounding and certain other
+kinds of numerical error.  This paper seeks to
+develop the techniques of interval analysis to a statistical application and
+promote the further utility of interval analysis to the statistical community.
+
+%--------------------------------------------------------------------------
+
+\section{Interval Analysis}
+
+Interval analysis first saw fruitful development in the 1960s, beginning
+with work published by \cite{Moore66}.  Since that time, interval analysis has
+seen extensive research a variety of applications, but has not seen
+wide exposure in statistical areas.  
+This paper continues the development of interval analysis applications to
+statistical distributions as in \cite{WangKennedyJASA} and \cite{WrightChi}.
+
+An interval ${\bf x}$   is a closed, real interval $[\underline x, \overline
+x]$, where the underscore and overscore are used to denote the lower and upper
+endpoints of the interval.  In this paper, boldface is used to distinguish
+intervals from real numbers.  Fundamental arithmetic operators can be defined
+for intervals.  Let ${\bf x}$ and ${\bf y}$ be intervals.  For 
+$ * \in \{+,-,\times,/ \}$, 
+define 
+${\bf x} * {\bf y} = \{x*y : x \in {\bf x}, y \in {\bf x} \}$, with division
+defined only when $0 \notin {\bf y}$.
+Closed-form expressions for the results of these operators exist, providing
+for easy
+computation of results, e.g. 
+$$
+{\bf x} \times {\bf y} = 
+[\min \{ \underline{x}\underline{y},\underline{x}\overline{y},
+      \overline{x}\underline{y}, \overline{x}\overline{y}\},
+\max \{ \underline{x}\underline{y},\underline{x}\overline{y},
+      \overline{x}\underline{y}, \overline{x}\overline{y}\}].
+$$
+An {\it interval function} is understood to be a function with interval
+arguments and an interval result.
+An interval function ${\bf f}$ is said to be {\it inclusion monotonic} if
+${\bf x} \subset {\bf y}$ implies ${\bf f}({\bf x}) \subset {\bf f}({\bf y})$.
+A fundamental theorem from interval analysis states that rational interval
+functions are inclusion monotonic.  
+When a rational interval function is evaluated on a computer, care must be
+taken to preserve the interval monotonicity of the function.  This can be
+achieved by controlling the rounding mode of the CPU's floating-point
+processor.  Processors which are compliant with the IEEE floating-point
+specifications (\cite{ANSI87}) 
+can be set to round down or round up, among other modes.  To
+maintain inclusion monotonicity, the results of a lower endpoint computation
+are always rounded down and the results of an upper endpoint computation are
+always rounded up.  For example, on a hypothetical three-digit computer and
+using directed triangles to indicate the appropriate rounding, the
+real fraction $1/6$ is computed as 
+$[1,1]/[6,6] = [\bigtriangledown(1/6) , \bigtriangleup(1/6)] = [.166, .167]$.
+When intervals with many decimal digits are displayed, an easily-understood
+representation of intervals is, for example, $ [.16_6^7]$.
+Most rounding-mode control can be made transparent to the programmer with the
+aid of appropriate software packages, such as the C++ libraries BIAS and PROFIL
+developed by \cite{KnuppelBIAS,KnuppelPROFIL}.  With the definition of
+interval data types and overloaded operators for interval types, programming
+interval computations can be as simple as z := x + y.
+
+%--------------------------------------------------------------------------
+\section{Bivariate F Distribution}
+
+The multivariate $F$ distribution considered by
+\cite{Krishnaiah75} and \cite{Krishnaiah80} is reconsidered here.
+Let $S = (s_{ij})$ be a Wishart random matrix with $m$ degrees of 
+freedom and 
+$E(S) = m\Sigma = m(\sigma_{ij})$.  The joint distribution of
+$s_{11},\ldots,s_{pp}$, the diagonal
+elements of $S$, is a multivariate $\chi^2$ 
+distribution with $m$ degrees of freedom.  The matrix $\Sigma$ is the
+covariance matrix of the underlying multivariate normal random variable.
+Let $F_i = \frac{s_{ii} \sigma^2/m }{s^2\sigma_{ii}/n}, i = 1,\ldots,p$
+where $s^2/\sigma^2$ is independently 
+distributed as a $\chi^2$ random variable with $n$ degrees of freedom.
+Then the joint distribution of $F_1, \ldots, F_p$ is a multivariate $F$
+distribution with $(m,n)$ degrees of freedom.  When $p = 2$, 
+$\rho = \sigma_{12}/{(\sigma_{11}\sigma_{22})}^{1/2}$
+is the correlation between standard normal random
+variables that underlie the bivariate $\chi^2$ distribution.
+The bivariate distribution of $F_1$ and $F_2$, 
+first introduced by \cite{Krishnaiah65}, is given by 
+\begin{eqnarray}
+f(x_1, x_2)= \frac{n^{n/2}(1-\rho^2)^{(m+n)/2}}
+                  {\Gamma(\frac{m}{2})\Gamma(\frac{n}{2})}
+  \sum_{i=0}^\infty 
+  \frac{\rho^{2i}\Gamma(m+\frac{n}{2}+2i)m^{m+2i}(x_1 x_2)^{m/2+i-1}}
+       {i!\Gamma(\frac{m}{2}+i)[n(1-\rho^2)+m(x_1+x_2)]^{m+n/2+2i}}
+\end{eqnarray}
+
+The distribution function can be expressed as
+\begin{equation}
+\label{cdf}
+P(F_1 \leq d_1, F_2 \leq d_2) =
+  (1-\rho^2)^{m/2} 
+  \sum_{j=0}^\infty 
+  \frac{\Gamma (\frac{m}{2}+j)}{j! \Gamma (\frac{m}{2})} 
+  \rho^{2j} B_j
+\end{equation}
+where
+$$ 
+B_j = \int_0^\infty \frac{e^{-z/2} z^{n/2-1}}{2^{n/2} \Gamma (n/2)} 
+        I_{1j} I_{2j} dz
+$$
+and 
+\begin{equation}
+I_{kj} =   \frac{1}{2^{m/2+j} \Gamma (m/2 +j)} 
+     \int_0^{\frac{d_k m z}{2n(1-\rho^2)}} e^{-u/2} u^{m/2+j-1} du 
+  = \Gamma\left(\frac{m}{2}+j, \frac{d_k m z}{2n(1-\rho^2)}\right)
+\end{equation}
+where $\Gamma(\alpha, d) $ is the incomplete gamma function, 
+$$
+\Gamma(\alpha, d) = 
+          \int_0^d   \frac{1}{\Gamma(\alpha)} x^{\alpha -1} e^{-x} dx.
+$$
+%--------------------------------------------------------------------------
+\section{Computation of Tables}
+
+\cite{Krishnaiah80} actually gives expressions for probability integrals over
+arbitrary rectangular regions, $P(c_1 \leq F_1 \leq d_1,c_2 \leq F_2 \leq d_2)$,
+but in all published tables of critical points, $c_1=c_2 = 0$.
+The challenging aspect of computing an interval
+enclosure of a critical point for the
+bivariate $F$ distribution is to find an appropriate rational interval 
+function which gives reasonably tight bounds for the enclosure.
+
+When the infinite series in (\ref{cdf}) is truncated after $t+1$ terms, 
+a bound on the truncation error $R_t$ given by \cite{Krishnaiah75} is:
+\begin{equation}
+\label{bivftruncerr}
+R_t \leq 1- (1-\rho^2)^{m/2}
+  \sum_{j=0}^t \frac{\Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2}) }
+  \rho^{2j}. 
+\end{equation}
+Let $P_t$ denote the series in (\ref{cdf}) truncated after $t+1$ terms.  Also,
+let ${\bf p}_t$ and ${\bf r}_t$ denote interval enclosures of $P_t$ and $R_t$
+respectively.  Then 
+$$P[Y_1 \leq d_1, Y_2 \leq d_2] = P_t + R_t \in
+ [ \underline{p}_t , \overline{p}_t + \overline{r}_t]$$ for all $t$.
+The stopping value of $t$ which is used will depend on machine and/or software
+precision.  In practice, ${\bf r}_t$ is computed successively and iteration 
+stops when 
+${\bf r}_{t-1} = {\bf r}_t$.  Termination could also be specified to occur
+when the width of ${\bf r}_{t}$ is less than
+a specified tolerance.
+
+A guaranteed enclosure of the incomplete gamma function is available by using
+methods found in \cite{WangKennedyJASA}.
+To compute an enclosure for $B_j$ via a rational interval function,
+ ideas similar to those of
+\cite{AmosBulgren} are used.  The integral is split into three pieces
+\begin{equation}
+  \int_0^\infty \cdot \, dz = \int_0^{\varepsilon _1} \cdot \, dz 
+    + \int_{\varepsilon _1}^{\varepsilon _2} \cdot \, dz 
+    + \int_{\varepsilon _2}^\infty \cdot \, dz
+   \label{three:integral}
+\end{equation}
+
+The left and right tails of $B_j$ can be bound in the following ways:
+$$
+0 \leq \int_0^{\varepsilon _1} \cdot \, dz \leq \varepsilon _1 
+\nonumber
+$$
+$$
+0 \leq \int_{\varepsilon _2}^\infty \cdot \, dz 
+  \leq 1 - \Gamma\left(\frac{n}{2}, \frac{\varepsilon _2}{2}\right)
+$$
+
+The middle integrand in the right-hand side of 
+(\ref{three:integral}) covers a finite domain, over
+which the second derivative exists, and is computed via the the use of 
+first-order Newton-Cotes quadrature.  Some references to numerical quadrature
+with automatic result verification appear in \cite{Kelch}.  The general form
+of Newton-Cotes quadrature is
+\begin{eqnarray}
+\lefteqn{
+\int_a^b f(x) dx = h\left(\frac{1}{2}f(a) + f(a+h) + f(a+2h) + \right.}
+\hspace{3.5in} \nonumber \\
+\left. \cdots + f(a+(m-1)h)
++ \frac{1}{2}f(a+hm)\right) + E
+\end{eqnarray}
+where $h = (b-a)/m$ and the error has the form 
+$$E = - \frac{(b-a)^3}{12m^2} f''(\xi)$$
+for some $\xi \in (a,b)$.
+The interval extension of $E$ involves the computation of 
+${\bf f}''([a,b])$.  If $f''$ is a rational function, as in this problem, 
+then the interval
+extension ${\bf f}''$ is inclusion monotonic and the width of 
+${\bf f}''([a,b])$ is likely to be greater than ${\bf f}''([a',b'])$ for
+$[a',b'] \subset [a,b]$.  Minimizing the width of the error term is one
+of the steps in achieving highly accurate final results.
+For this reason, the middle integral in the right-hand side of
+(\ref{three:integral})  is actually computed as the sum
+of a series of subintegrals, each of which is evaluated by numerical
+quadrature.
+\begin{equation}
+\int_{\epsilon _1}^{\epsilon _2} \cdot \, dz = 
+  \int_{\epsilon _1}^{\epsilon _1+\nu} \cdot \, dz
+ +\int_{\epsilon _1+\nu}^{\epsilon _1+2\nu} \cdot \, dz
+ + \cdots + \int_{\epsilon _1+(k-1)\nu}^{\epsilon _1+k\nu} \cdot \, dz
+ + \int_{\epsilon _1+k\nu}^{\epsilon _2} \cdot \, dz
+\end{equation}
+Tuning the parameters ($\epsilon_1, \epsilon_2, k, \nu, h, m$)
+of the method used here is not an immediately
+straightforward matter.
+Generally speaking, increasing the number of quadrature points will increase
+the accuracy (i.e. narrowness) of the final answer.  A limit is reached,
+however, when increasing the number of quadrature points becomes
+counter-productive.  This happens because each interval
+function evaluation at a
+quadrature point results in a slight amount of overestimation and
+underestimation of the true value.  Increasing $m$ results in a narrower
+enclosure of the error $E$ for each integrand, 
+but eventually this gain is nullified by the sum
+of the overestimated and underestimated function values.
+A similar phenomenon occurs in deciding how many subintegrals to use in
+evaluating $\int_{\epsilon_1}^{\epsilon_2} \cdot\, dz$.
+  
+  It is common in interval analysis to use so-called automatic derivatives for
+evaluation of the derivatives of a function.  See \cite{Moore79} for an
+overview.  In this research, computed enclosures of $f''$ were found to be
+much narrower when a hand-derived expression for $f''$ was coded into the
+software.  The
+resulting expression involves evaluation of $x^{m/2-2}$ over an interval with
+a lower endpoint of $0$.  This limits the degrees of freedom to
+$m \geq 5$.
+
+Tables of critical values $d$ were computed for 
+\begin{equation}
+P(F_1 \leq d, F_2 \leq d) = \alpha.
+\label{inteq}
+\end{equation}
+Critical values for non-rectangular
+regions could easily be computed uniquely by specifying an additional
+constraint.  Solving the integral equation (\ref{inteq}) for $d$ requires the use of an
+iterative algorithm for finding roots, e.g. Newton-Raphson.  This paper uses
+an intervalized bracket-secant algorithm, switching to an intervalized
+bisection algorithm to further narrow the enclosure of the critical point
+after the bracket-secant algorithm terminates.  Complete details of the method
+appear in \cite{WrightChi}.
+
+%--------------------------------------------------------------------------
+\section{Conclusions}
+
+The computation of self-validated 
+critical values for this bivariate $F$ distribution is very
+time-consuming.  
+The probability content of a rectangular region can be computed
+in a few minutes, but this is likely to be prohibitively costly for  
+implementation of real-time computation of critical values.    
+Since determination of critical points involves finding the roots of an
+equation, each entry in the table required several hours to compute on a DEC 5000
+workstation.  (Less time would be required for wider enclosures.) 
+For this distribution, the real utility of
+interval analysis is the verification and guarantee of accuracy 
+of previously published tables.  The tables published in \cite{Krishnaiah75} and 
+\cite{Krishnaiah80} are generally quite accurate, but do have slight errors in
+the last (hundredths) digit which are likely due to rounding, exactly the kind
+of error which interval analysis can eliminate.  Tables \ref{biv2} and
+\ref{biv3} are examples of the accuracy achieved by the software developed for
+this research.
+
+%\renewcommand{\bibname}{\centerline{Bibliography}}
+%\addcontentsline{toc}{section}{Bibliography}
+%\bibliography{thesis}
+
+
+\newdimen\captionwidth \captionwidth=3.5in
+\renewcommand{\arraystretch}{1.35}
+\begin{table}[ht!]
+\caption{Upper 0.05 percentile points of the bivariate F distribution \label{biv2}}
+\begin{center}
+\begin{tabular}{|c|l|l|l|l|} \hline
+& \multicolumn{4}{c|}{$n=10$} \\ \cline{2-5}
+$m$ & $ \rho=0.1$         & $ \rho=0.3$          & $ \rho=0.5$
+& $ \rho=0.7$ \\ \hline
+2 & $5.31734_{16}^{58}$  & $5.2768_{08}^{13}$  & $5.18758_{74}^{96}$ &  $5.02529_{34}^{78}$ \\
+4 & $4.3110_{77}^{81}$   & $4.28342_{02}^{36}$ & $4.22239_{28}^{63}$ & $4.11107_{12}^{52}$ \\
+6 & $3.89658_{49}^{81}$  & $3.87377_{14}^{47}$ & $3.82350_{20}^{55}$ & $3.73205_{38}^{79}$ \\
+8 & $3.66318_{34}^{49}$  & $3.64307_{48}^{81}$ & $3.59884_{59}^{95}$ & $3.51864_{01}^{45}$ \\
+10 & $3.51093_{60}^{94}$ & $3.49262_{65}^{99}$ & $3.4524_{18}^{23}$ & $3.37971_{35}^{84}$ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\begin{table}[ht!]
+\caption{Upper 0.01 percentile points of the bivariate F distribution \label{biv3}}
+\begin{center}
+\begin{tabular}{|c|l|l|l|l|} \hline
+& \multicolumn{4}{c|}{$n=10$} \\ \cline{2-5}
+$m$ & $\rho=0.1$         & $\rho=0.3$          & $\rho=0.5$          & $\rho=0.7$ \\ \hline
+2 & $9.3014_{81}^{99}$ & $9.2532_{09}^{24}$ & $9.1430_{46}^{61}$ & $8.9312_{01}^{17}$  \\
+4 & $7.1869_{87}^{98}$ & $7.1526_{58}^{70}$ & $7.0749_{24}^{36}$ & $6.9271_{83}^{94}$   \\
+6 & $6.3616_{77}^{99}$ & $6.3325_{83}^{93}$ & $6.26714_{03}^{96}$ & $6.1440_{58}^{67}$  \\
+8 & $5.9094_{61}^{83}$ & $5.8833_{19}^{28}$ & $5.8248_{14}^{23}$ & $5.7156_{66}^{75}$   \\
+10 &$5.6197_{38}^{60}$ & $5.5955_{87}^{96}$ & $5.5417_{47}^{56}$ & $5.4419_{29}^{38}$    \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1.0}

@@ -1,0 +1,1130 @@
+% biv.tex
+% Time-stamp: <22 Jul 2005 15:34:41 x:/kw/Research/Bivariate/biv.tex>
+
+\documentclass[10pt,letterpaper]{article}
+\usepackage{natbib,graphics} 
+
+\usepackage{color}
+\definecolor{Green}{rgb}{0,.5,0}
+\definecolor{Blue}{rgb}{0,0,0.8} 
+\definecolor{Red}{rgb}{0.7,0,0}
+
+\usepackage[pagebackref,colorlinks,plainpages=false,
+  citecolor=Blue,
+  linkcolor=Red,
+  plainpages,
+  pdfauthor={Kevin Wright},
+  pdftitle={Bivariate Chi-Square and F Distriubtions}]{hyperref}
+
+\makeatletter
+% Make section headings slightly smaller than default
+\renewcommand\section{\@startsection {section}{1}{\z@}%
+                 {-3.5ex \@plus -1ex \@minus -.2ex}%
+                 {2.3ex \@plus.2ex}%
+                 {\normalfont\normalsize\bfseries }}
+% Make section headings slightly smaller than default
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+                 {-3.25ex\@plus -1ex \@minus -.2ex}%
+                 {1.5ex \@plus .2ex}%
+                 {\scshape\normalsize\bfseries}} % Smallcap doesn't work for me
+
+% We're using natbib, so we can reduce the spacing between entries in 
+% the bibliography
+\setlength{\bibsep}{5pt} 
+
+\setlength{\doublerulesep}{0.003in}
+
+\raggedright\parindent18pt
+
+% Paragraph spacing
+\parskip=.1in
+
+% Set margins
+\usepackage[margin=1in,includehead]{geometry}
+
+\pagestyle{myheadings}
+
+% Define the even and odd page headings
+% \markboth{\rm K. WRIGHT AND W. J. KENNEDY \hspace{2in}} 
+% {\rm \hspace{1.5in}SELF-VALIDATED COMPUTATIONS}
+
+\begin{document}
+\bibliographystyle{apalike}
+
+\pagenumbering{arabic}
+
+\def\bfw{ {\bf w}}
+\def\bfx{{\bf x}}
+\def\bfy{{\bf y}}
+\def\bfOmega{\mbox{\boldmath $\Omega$}}
+\def\bfphi{\mbox{\boldmath $\phi$}}
+\def\bfPhi{\mbox{\boldmath $\Phi$}}
+\def\bfpi{\mbox{\boldmath $\pi$}}
+\def\bfmu{\mbox{\boldmath $\mu$}}
+\def\bfPhi{\mbox{\boldmath $\Phi$}}
+
+% Make footnotes be numbers
+\renewcommand{\thefootnote}{\arabic{footnote}}
+
+\title{\Large\bf SELF-VALIDATED COMPUTATIONS FOR THE PROBABILITIES OF 
+THE CENTRAL BIVARIATE CHI-SQUARE DISTRIBUTION AND A BIVARIATE $F$
+DISTRIBUTION\thanks{This work was partially supported by National Science
+  Foundation grant DMS-9500831.}}
+
+\author{KEVIN WRIGHT\renewcommand{\thefootnote}{\arabic{footnote}}\footnotemark[1]\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\thanks{Corresponding author.  E-mail: Kevin.D.Wright@pioneer.com}
+\,\,and WILLIAM J. KENNEDY\renewcommand{\thefootnote}{\arabic{footnote}}\footnotemark[2]\\
+\\
+\renewcommand{\thefootnote}{\arabic{footnote}}\footnotemark[1]
+\small Pioneer Hi-Bred International, Inc., Johnston, IA 50131; \\
+\footnotemark[2] \small Department of Statistics, Iowa State University, Ames, IA 50011}
+
+\date{\it\small (Received 6 October 2000; In final form 28 February 2001) }
+\maketitle
+
+% Make footnotes be symbol
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\footnotetext[4]{\copyright{\it J. Statist. Comput. Simul.}, 2002, Vol. 72 }
+
+\begin{abstract}
+\noindent Self-validated computations using interval 
+analysis produce results with a
+guaranteed error bound.  This article presents methods for self-validated
+computation of probabilities and percentile points of the bivariate chi-square
+distribution and a bivariate $F$ distribution.  For the computation of
+critical points $(c_1, c_2)$ in the equation
+$P(Y_1 \leq c_1, Y_2 \leq c_2) = 1-\alpha$,
+the case $c_1 = c_2$ is considered.  A combination of interval secant
+and bisection algorithms is developed for finding enclosures of the percentile
+points of the distribution.  Results are compared to previously published
+tables. 
+\newline
+\newline
+\noindent {\it Keywords: } Interval analysis; 
+Guaranteed error bound; secant search
+\end{abstract}
+
+%--------------------------------------------------------------------------
+
+\section{INTRODUCTION\label{sec:intro}}
+
+When using digital computers for computations, it is wise to give some thought
+to error analysis of the computations.
+Examples of  erroneous results obtained through naive computations
+appear often enough in scientific literature to cause concern.
+\cite{McCullough98, McCullough99} offers a good beginning point to this topic.
+
+The techniques of interval analysis pioneered by \cite{Moore66,
+Moore79} can provide guaranteed error bounds for the
+results of mathematical computations.
+Guaranteed error bounds, provided they are sufficiently narrow, can be used
+to assess the accuracy of tabled values or to evaluate the quality of
+results produced by scalar algorithms.
+
+Interval analysis has been successfully utilized in statistical areas, 
+for example \cite{WangKennedyJASA}, and \cite{WrightEM}, 
+but has not yet had wide exposure to the
+statistical community.
+The goals of this article are 
+(1) To present truncation error bounds for infinite series related to some
+bivariate chi-square and bivariate $F$ distributions
+(2) To implement these bounds in calculations using interval analysis
+(3) To develop and apply intervalized secant methods for root-finding
+to the location of critical points and
+(4) To compare results obtained with previously published results.
+
+The structure of this article begins with an introduction to interval analysis 
+in section \ref{sec:intanal} 
+sufficient to understand the remainder of this article.  Section
+\ref{sec:root} presents a new algorithm for finding guaranteed error bounds of
+the solution of an equation.
+Section \ref{sec:bivchi} describes several bivariate chi-square distributions
+and introduces a method for obtaining guaranteed error bounds in the
+calculation of tables for the distribution.
+Section \ref{sec:bivf} takes a similar view of a bivariate $F$ distribution.
+Some conclusions are stated in section \ref{sec:conclusions}.
+%------------------------------------------------------------------
+\section{INTERVAL ANALYSIS\label{sec:intanal}}
+
+Interval analysis first saw fruitful development in the 1960s, beginning
+with work published by \cite{Moore66}.  Since that time, interval analysis has
+seen extensive research for a variety of applications, for example,
+\cite{HansenBook}, but has not seen wide utilization in statistical areas.  
+This article continues the development of interval analysis applications to
+statistical distributions as in \cite{WangKennedyJASA}.
+
+An interval ${\bf x}$ is defined to be a closed, bounded set of real numbers,
+$ {\bf x} = [\underline{x}, \overline{x}]$.  Throughout this article, boldface
+is used to indicate intervals.  
+Let ${\bf x} = [\underline{x}, \overline{x}]$ and 
+${\bf y} = [\underline{y}, \overline{y}]$ 
+be two  intervals.  The interval arithmetic
+operations are defined as 
+${\bf x} \circ {\bf y} = \{ x \circ y : x \in {\bf x}, y \in {\bf y}\},$
+where $\circ \in \{+, -, \cdot, / \}$ and division is undefined 
+for $0 \in {\bf y}$.
+Interval arithmetic operations can be expressed in closed form using scalar
+arithmetic operations.  For example, interval multiplication is defined
+${\bf x} \cdot {\bf y} =
+[\min(\underline{x}\underline{y},\underline{x}\overline{y},
+\overline{x}\underline{y}, \overline{x}\overline{y}),
+\max(\underline{x}\underline{y},\underline{x}\overline{y},
+\overline{x}\underline{y}, \overline{x}\overline{y})].$
+Similar expressions exist for $+, -,$ and $/$.  Complete details can be found
+in \cite{Moore79}.
+
+An {\it interval function} is defined as an interval-valued function of one or more
+interval arguments.  A function ${\bf f}({\bf x}_1, \ldots {\bf x}_n)$ is said
+to be an {\it interval extension} of the scalar function
+$f(x_1, \ldots, x_n)$ if
+${\bf f}([x_1,x_1], \ldots, [x_n,x_n]) = f(x_1, \ldots, x_n)$
+for all $x_i, i=1,\ldots,n$.
+An interval-valued function ${\bf f}$ is said to be 
+{\it inclusion monotonic} if 
+${\bf f(x) \subset f(y)}$ whenever ${\bf x \subset y}$.
+A fundamental theorem from interval analysis states that rational interval
+functions are inclusion monotonic.
+
+In this article, the {\it natural interval extension} of a real function 
+will be used.  This is an interval-valued function
+in which intervals and interval operations 
+are substituted for scalars and scalar operations.
+The value of the interval extension of 
+a function
+is dependent on the form of the real function.  For example,
+let $f_1 (x) = xx - 2x$ and 
+$f_2 (x) = x(x-2)$.
+Let ${\bf f}_1$ and ${\bf f}_2$ be the corresponding natural interval
+extensions and let ${\bf x} = [-1,2]$.  Then
+${\bf f}_1({\bf x}) = [-6, 6]$ and
+${\bf f}_2({\bf x}) = [-6, 3]$
+which both contain $[-1, 3]$, the true range of $f$ over ${\bf x}$.
+This characteristic of interval computations to sometimes
+overestimate the range of a function
+is referred to as {\it interval dependency}.  Attention must be given to the
+exact expression of a function to reduce the effect of interval dependency.
+\cite{HansenSharp} discusses ways to minimize interval dependency.
+
+When implementing interval arithmetic calculations on computers, care must
+also be taken to ensure that rounding errors do not invalidate the 
+inclusion monotonicity
+of interval results.  One way to achieve this is through the
+use of directed rounding modes in the floating-point calculations.  
+
+Numerical processors that are compliant with the IEEE floating-point
+specifications \citep{ANSI87}
+can be set to round down or round up, among other modes.  To
+maintain inclusion monotonicity during calculations, 
+the results of a lower interval 
+endpoint computation
+are always rounded down and the results of an upper interval 
+endpoint computation are
+always rounded up.  For example, on a hypothetical three-digit computer and
+using directed triangles to indicate the appropriate rounding, the
+real fraction $1/6$ is computed as 
+$[1,1]/[6,6] = [\bigtriangledown(1/6) , \bigtriangleup(1/6)] = [0.166,0.167]$.
+When intervals with common decimal digits are displayed, an easily-understood
+representation of intervals is, for example, $ [0.16_6^7]$.
+
+Correct use of the rounding modes guarantees that the computed result contains
+the true value of the scalar calculation.
+Most rounding-mode control can be made transparent to the programmer with the
+aid of appropriate software packages, such as the C++ libraries BIAS 
+(Basic Interval Arithmetic Subroutines) and PROFIL 
+(Programmer's Optimized Fast Interval Library)
+developed by \cite{KnuppelBIAS,KnuppelPROFIL}.  
+The calculations in this article were performed on DEC 5000 and DEC Alpha
+workstations with C++ and the BIAS/PROFIL libraries.
+
+% ------------------------------------------------------------------------
+\section{INTERVAL SECANT AND BISECTION ROOT-FINDING\label{sec:root}}
+
+For a distribution function $F(x)$, the $100p^{th}$ percentile $x_p$ is the
+solution of the equation 
+$F(x_p) - p = 0$.  For the bivariate distributions
+considered in this article, finding percentiles will involve solving the
+equation $P(Y_1 \leq x_p, Y_2 \leq x_p) - p = 0,$ (where $Y_1$ and $Y_2$ are
+random variables).  
+Intervalized Newton methods for finding zeros of functions 
+exist and could be used.
+However, interval Newton methods require 
+an interval extension of both the function being considered
+and its derivative, which in this
+case are the distribution and density functions.  
+Using a derivative-free search algorithm
+eliminates the need to obtain an enclosure of the density function.
+It would be possible to use the 
+technique of automatic differentiation presented in 
+\cite{Moore79} to obtain an
+enclosure of the derivative of a function, but only at the cost of (sometimes
+considerable) loss of precision due to interval dependency.
+
+A new interval algorithm for the identification of the zero of a function is
+now presented.  The algorithm ZERO given here
+begins with an intervalized secant method using the Illinois
+modification.  See \cite{Thisted} for a complete explanation of this
+algorithm in the scalar case.   
+
+Consider the general scalar equation $F(x) = 0$ as depicted by the curved line
+in figure~\ref{fig:secant}.  Let ${\bf F}$ be an interval extension of $F$ and
+define ${\bf F}(x) \equiv 
+{\bf F}([x,x])$ (that is, a scalar argument $x$ is interpreted by the 
+interval function as the interval $[x,x]$).
+The algorithm begins with the specified
+values $x_{i-1}$ and $x_i$ that surround the
+zero of the scalar function $F$ and satisfy
+${\bf F}(x_{i-1})< 0 < {\bf F}(x_{i})$.  
+Using an intervalized secant method, the algorithm 
+calculates the point $x_{i+1}$ and tries to determine if the zero of the
+scalar function $F$ is to the left or the right of $x_{i+1}$.  
+From this determination, either $[x_{i-1},x_{i+1}]$ or $[x_{i+1},x_i]$ will be
+used in the next iteration as the values which surround the zero of the
+function $F$.
+At some iteration $i+1$ of the secant portion of the algorithm,
+$0 \in {\bf F}(x_{i+1})$
+and it is not then known whether the zero of the function
+is to the left
+or the right of $x_{i+1}$.   Figure~\ref{fig:secant} shows this condition.
+
+The secant algorithm is successful in rapidly narrowing the enclosure
+of the zero of the function, but may stop while the interval is
+wider than desired.
+%\newdimen\captionwidth \captionwidth=4.0in
+\begin{figure}[ht]
+\begin{center}
+\begin{picture}(200,150)
+% Horizontal line
+\put(0,70){\line(1,0){200}}
+\put(205,70){$0$}
+% Functional curve
+\qbezier(10,20)(70,30)(100,70)
+\qbezier(100,70)(130,120)(190,140)
+\put(195,135){$F(x)$}
+% Left function tick mark
+\put(30,10){\line(0,1){25}}
+\put(35,10){${\bf F}(x_{i-1})$}
+% Right function tick
+\put(150,110){\line(0,1){20}}
+\put(155,110){${\bf F}(x_i)$}
+% Middle function tick
+\put(90,45){\line(0,1){30}}
+\put(95,45){${\bf F}(x_{i+1})$}
+\end{picture}
+\end{center}
+\caption{Termination of the secant portion of the
+algorithm.  The curved line 
+represents the real function and vertical line segments denote interval
+enclosures of the function.}
+\label{fig:secant}
+\end{figure}
+After the secant portion of the algorithm terminates, let 
+$x_L = \min\{x_{i-1}, x_i\}$ and let $x_U = \max\{x_{i-1},x_i\}$.
+A bisection algorithm is called
+twice, once each on the left $[x_L, x_{i+1}]$ and right $[x_{i+1},x_U]$ 
+intervals, to tighten the
+enclosure of the zero as much as possible, until (but not including)
+$0 \in {\bf F}(x_L), 
+0 \in {\bf F}(x_U)$.  The interval $[x_L, x_U]$ is a narrow interval
+containing the zero of the equation $F(x)=0$. 
+Figure~\ref{fig:bisect}
+illustrates conditions at the termination of algorithm ZERO.  
+This article uses the algorithm ZERO to calculate enclosures of 
+the critical points of some bivariate distributions.
+\begin{figure}[ht]
+\begin{center}
+\begin{picture}(200,150)
+% Horizontal line
+\put(0,70){\line(1,0){200}}
+\put(205,70){$0$}
+% Functional curve
+\qbezier(10,20)(70,30)(100,70)
+\qbezier(100,70)(130,120)(190,140)
+\put(195,135){$F(x)$}
+% Left function tick mark
+\put(85,40){\line(0,1){27}}
+\put(90,40){${\bf F}(x_L)$}
+
+% Right function tick
+\put(110,70){\line(0,1){29}}
+\put(115,75){${\bf F}(x_U)$}
+
+\end{picture}
+\end{center}
+\caption{Termination of the bisection portion of the algorithm.  The 
+interval $[x_L, x_U]$ bounds the root of the function $F(x)=0$.}
+\label{fig:bisect}
+\end{figure}
+
+\begin{tabbing}
+ALGORITHM ZERO(FLOATING\_POINT $x_0$, $x_1$; INTERVAL\_FUNCTION ${\bf F}$) \\
+\qquad \= \qquad \= \qquad \kill 
+REMARK Bound the root of an increasing function $F$.  Return $[l,u]$ to user. \\
+REMARK Check that $F(x_0) < 0 < F(x_1)$ or $F(x_1) < 0 < F(x_0)$ \\
+REMARK Bold letters denote intervals \\
+$l := x_0$ \\
+$u := x_1$ \\
+${\bf FL} := {\bf F}([l,l])$ \\
+${\bf FU} := {\bf F}([u,u])$ \\
+done := FALSE \\
+REPEAT \\
+\> ${\bf X}_c := u - (u-l)/(1-{\bf FL}/{\bf FU})$ 
+   \quad REMARK Find the secant intercept\\
+\> $x_{i+1}$ := $(\underline{{\bf X}}_c + \overline{{\bf X}}_c) / 2$  \quad
+REMARK Use the midpoint for the next iterate  \\
+\> ${\bf F}_{i+1}$ := ${\bf F}([x_{i+1},x_{i+1}])$    \\
+\> IF $\underline{{\bf F}}_{i+1} > 0 $ THEN  REMARK The zero is between $l$ and $x_{i+1}$ \\
+\> \> $ u := x_{i+1}  $  \\
+\> \> $ {\bf FU} := {\bf F}_{i+1} $    \\
+\> \> IF $\underline{{\bf F}}_i > 0$  THEN  ${\bf FL} := {\bf FL} / 2 $  
+        \quad REMARK Illinois modification  \\
+\> ELSE IF $\overline{{\bf F}}_{i+1} < 0 $ THEN   REMARK The zero is between $x_{i+1}$ and $u$ \\
+\> \> $ l := x_{i+1} $   \\
+\> \> $ {\bf FL} := {\bf F}_{i+1} $    \\
+\> \> IF $\underline{{\bf F}}_i < 0$ THEN $ {\bf FU} := {\bf FU} / 2 $   
+        \quad REMARK Illinois modification  \\
+\> ELSE    REMARK Cannot determine if the zero is to the left or 
+         right of $x_{i+1}$ \\
+\> \> $done$ := TRUE    \\
+\> IF $ 0 \in ({\bf FU} - {\bf FL}) $ THEN \\
+\> \> REMARK In the next iteration, the denominator would contain zero \\
+\> \> $done$ := TRUE \\
+\> ${\bf F}_i := {\bf F}_{i+1} $ \\
+UNTIL ($done$ = TRUE) \\
+
+REMARK Use bisection to tighten the upper endpoint \\
+$ q := l $ \\ 
+REPEAT \\
+\> $ prevq := q $ \\
+\> $ prevu := u $ \\
+\> $ x := (q + u) / 2 $ \\
+\> $ {\bf FX} := {\bf F}([x,x]) $ \\
+\> IF $\underline{{\bf FX}} > 0$ THEN $ u := x $ \\
+\> ELSE IF $\overline{{\bf FX}} < 0 $ THEN $ q := l := x $ \\
+\> ELSE $ q := x$ \\
+UNTIL ( ($q = prevq$) AND ($u = prevu$) ) \\
+
+REMARK Use bisection to tighten the lower endpoint \\
+$ q := u $ \\ 
+REPEAT \\
+\> $ prevq := q $ \\
+\> $ prevl := l $ \\
+\> $ x := (l + q) / 2 $ \\
+\> $ {\bf FX} := {\bf F}([x,x]) $ \\
+\> IF $\underline{{\bf FX}} > 0$ THEN $ u := x $ \\
+\> ELSE IF $\overline{{\bf FX}} < 0 $ THEN $ l := x $ \\
+\> ELSE $ q := x$ \\
+UNTIL ( ($q = prevq$) AND ($l = prevl$) ) \\
+
+RETURN $[l,u]$
+
+\end{tabbing}
+
+% --------------------------------------------------------------------------
+\section{BIVARIATE CHI-SQUARE DISTRIBUTIONS\label{sec:bivchi}}
+
+Several applications in statistical inference utilize
+bivariate chi-square distributions.  As mentioned by \cite{Jensen}, such areas
+include simultaneous inferences for variances, simultaneous tests in analysis
+of variance, simultaneous tests for goodness of fit, and the distribution of
+the larger of correlated chi-square variates.  \cite{Gunst} show how the
+bivariate chi-square distribution can be applied to the density function of a
+linear combination of independent chi-square random variables.
+\cite{Jensen69} further discuss simultaneous confidence intervals for
+variances while \cite{Tuprah86} present a related application to bivariate
+dispersion quality control charts.  For example, consider a manufacturing
+process that is characterized by two random variables, $X_1$ and $X_2$, with
+respective process standard deviations $\sigma_1$ and $\sigma_2$.
+It is desirable to detect shifts in the process
+standard deviations away from specified target values.
+If the two random variables are not independent, then
+the sample variances $s_1^2$ and $s_2^2$ can be used along with a region
+determined by a bivariate chi-square distribution to simultaneously 
+detect shifts in the process standard
+deviations away from specified target values.
+
+In general, consider two random variables with 
+variances $\sigma_1^2$ and $\sigma_2^2$.
+Let $s_1^2$ and $s_2^2$ be estimates of $\sigma_1^2$ and $\sigma_2^2$ 
+such that $\nu_i s_i^2 / \sigma_i^2$ ($i=1,2$) 
+follows a chi-square distribution 
+with $\nu_i$ degrees of freedom.  The joint distribution of $\nu_1 s_1^2 /
+\sigma_1^2$ and $\nu_2 s_2^2 / \sigma_2^2$ is referred to as a bivariate
+chi-square distribution.
+Consideration will be given here to three cases of a bivariate chi-square
+distribution that are distinguished by degrees of freedom and the 
+number of non-zero canonical correlations.  
+
+{\it Case 1}  In the first case, let $\{(Z_{1i}, Z_{2i}), i = 1,\ldots,m\} $ 
+be independent
+random variables, $Z_{ij} \sim N(0,1)$ with a (canonical) correlation between
+$Z_{1i}$ and $ Z_{2i}$ of $\rho$.
+Then $Y_i = \sum_{j=1}^m Z_{ij}^2$ ($i=1,2$) are chi-square random variables,
+each with $m$ degrees of freedom, and with $m$ non-zero 
+canonical correlations $\rho$.
+The joint distribution of $Y_1$ and $Y_2$ given by \cite{Krishnaiah80} is
+\begin{eqnarray}
+\label{cdf1}
+\lefteqn{P[Y_1 \leq d_1, Y_2 \leq d_2] = (1-\rho^2)^{m/2}  \times} 
+  \hspace{3.5in} \nonumber \\
+  \sum_{j=0}^\infty 
+  \frac{\Gamma (\frac{m}{2}+j)}{j! \Gamma (\frac{m}{2})} 
+  \rho^{2j} 
+  \gamma\left( \frac{m}{2}+i , \frac{d_1}{1-\rho^2}\right)
+  \gamma\left( \frac{m}{2}+i , \frac{d_2}{1-\rho^2}\right),
+\end{eqnarray}
+where $\gamma(\alpha, d) $ is the incomplete gamma function, 
+$\gamma(\alpha, d) = 
+    \int_0^d  x^{\alpha -1} e^{-x}/ \Gamma(\alpha)\, dx$.
+When the infinite series in (\ref{cdf1}) is truncated after $t+1$ terms, 
+a bound on the truncation error $r_t$ given by 
+\cite{Krishnaiah80} is
+\begin{equation}
+\label{error1}
+r_t \leq 1- (1-\rho^2)^{m/2}
+  \sum_{j=0}^t \frac{\Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2}) }
+  \rho^{2j}.
+\end{equation}
+For completeness, the derivation of this bound is 
+given here.  Let 
+$$
+k_j =   (1-\rho^2)^{m/2} 
+  \frac{\Gamma (\frac{m}{2}+j)} {j! \Gamma (\frac{m}{2})} 
+  \rho^{2j}.
+$$
+Since $\gamma(\cdot,\cdot) \leq 1$ 
+and the $k_j$ are the density of a Negative Binomial
+distribution, the truncation error $r_t$ satisfies
+$$
+r_t = \sum_{j=t+1}^\infty k_j 
+  \gamma\left( \frac{m}{2}+j , \frac{d_1}{1-\rho^2}\right)
+  \gamma\left( \frac{m}{2}+j , \frac{d_2}{1-\rho^2}\right)
+  \leq \sum_{j=t+1}^\infty k_j
+ = 1 - \sum_{j=0}^t k_j.
+$$
+Let $p_t$ represent the value of the series in (\ref{cdf1}) truncated
+after $t+1$ terms ($j=t$), and let 
+${\bf p}_t$ and ${\bf r}_t$ represent the natural interval extensions of 
+$p_t$ and $r_t$ respectively.  Then
+$P[Y_1 \leq d_1, Y_2 \leq d_2] = p_t + r_t \in
+ [ \underline{p}_t , \overline{p}_t + \overline{r}_t]$
+ for all $t$.
+The stopping value of $t$  that is
+used depends on machine and software precision.  In
+practice, ${\bf r}_t$ is computed successively and iteration stops when 
+${\bf r}_{t-1} = {\bf r}_t$ or when the width of ${\bf r}_{t}$ is less than
+a specified tolerance.
+
+%--------------------------------------------------------------------------
+
+{\it Case 2}
+Now consider the case when $Y_1$ and $Y_2$ follow chi-square distributions
+with $m$ and $n$ degrees of freedom respectively and have $m$ non-zero
+canonical correlations $\rho$.
+The joint distribution of $Y_1$ and $Y_2$ given by \cite{Gunst} is
+\begin{eqnarray}
+\lefteqn{P[Y_1 \leq d_1, Y_2 \leq d_2, ] = 
+  (1-\rho^2)^{(m+n)/2} \times}\nonumber \\
+  & & 
+  \sum_{j=0}^\infty \sum_{k=0}^\infty 
+  \frac{ \Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2})  }
+  \frac{ \Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2})  }
+  \rho^{2(j+k)} 
+  \gamma \left(\frac{m}{2}+j, \frac{d_1}{1-\rho^2} \right)  
+  \gamma \left(\frac{n}{2}+k, \frac{d_2}{1-\rho^2} \right). 
+  \label{cdf2}
+\end{eqnarray}
+Since a bound for the truncation error has not previously been published, one
+is given here.  Because the method of 
+derivation is completely analogous to the previous case, only the result
+is stated:
+\begin{equation}
+\label{error2}
+r_{t_1, t_2} \leq 1- (1-\rho^2)^{m/2 + n/2}
+  \sum_{j=0}^{t_1} \sum_{k=0}^{t_2} 
+  \frac{\Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2}) }
+  \frac{\Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2}) }
+  \rho^{2(j +k)}.
+\end{equation}
+Let ${\bf p}_{t_1,t_2}$ be the result obtained when the first 
+$(t_1+1, t_2+1)$ terms of the
+natural interval extension of (\ref{cdf2}) are used, and let ${\bf r}_{t_1,t_2}$ 
+be the
+result obtained from the natural interval extension of (\ref{error2}).  Then 
+$P[Y_1 \leq d_1, Y_2 \leq d_2] = p_{t_1,t_2} + r_{t_1,t_2}
+  \in
+ [ \underline{p}_{t_1,t_2} , 
+   \overline{ p}_{t_1,t_2} + \overline{ r}_{t_1,t_2}]$
+for all pairs $(t_1,t_2)$.
+
+%--------------------------------------------------------------------------
+
+{\it Case 3} In the final case, 
+%$Y_1 \sim \chi^2 (m+n)$, $n>0$, $Y_2 \sim \chi^2 (m+p)$, $p>0$, and there
+%are still $m$ non-zero canonical correlations.  In this case the distribution
+%of $(Y_1, Y_2)$ is 
+$Y_1$ and $Y_2$ have chi-square distributions with 
+$m+n$ and $m+p$ degrees of freedom, respectively, and
+there are $m$ non-zero canonical correlations.
+The joint distribution of $Y_1$ and $Y_2$ given by \cite{Gunst} is
+\begin{eqnarray}
+\lefteqn{P[Y_1 \leq d_1, Y_2 \leq d_2 ]= (1-\rho^2)^{(m+n+p)/2} 
+ \sum_{j=0}^\infty \sum_{k=0}^\infty  \sum_{l=0}^\infty 
+ \frac{ \Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2})  }
+  \frac{ \Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2})  }
+ \frac{ \Gamma (\frac{p}{2}+l)}{ l! \Gamma (\frac{p}{2})  } 
+ \times}  \nonumber \\
+  & & \hspace{+1in}
+ \rho^{2(j+k+l)} \gamma \left(\frac{m}{2}+\frac{n}{2}+k+j, 
+          \frac{d_1}{1-\rho^2} \right)  
+ \gamma \left(\frac{m}{2}+\frac{p}{2}+j+l, \frac{d_2}{1-\rho^2} \right).  
+\label{cdf3} 
+\end{eqnarray}
+The bound on the truncation error is again derived in a manner 
+analogous to the first case:
+\begin{eqnarray}
+\label{error3}
+\lefteqn{ r_t \leq 1- (1-\rho^2)^{m/2 + n/2 + p/2}
+   \times} \nonumber \hspace{3.5in}\\
+   \sum_{j=0}^{t_1} \sum_{k=0}^{t_2} 
+   \sum_{l=0}^{t_3} 
+   \frac{\Gamma (\frac{m}{2}+j)}{ j! \Gamma (\frac{m}{2}) }
+   \frac{\Gamma (\frac{n}{2}+k)}{ k! \Gamma (\frac{n}{2}) }
+   \frac{\Gamma (\frac{p}{2}+l)}{ l! \Gamma (\frac{p}{2}) }
+   \rho^{2(j +k +l)}. 
+\end{eqnarray}
+Similar to before, 
+$P[Y_1 \leq d_1, Y_2 \leq d_2] \in
+ [ \underline{ p}_{t_1,t_2,t_3} , 
+   \overline{ p}_{t_1,t_2, t_3} + \overline{ r}_{t_1,t_2, t_3}]$
+for all triples $(t_1,t_2, t_3)$ and the choice of $(t_1,t_2, t_3)$ is 
+determined by machine/software limitations or a tolerance level.
+
+%--------------------------------------------------------------------------
+\subsection{Computation of Tables and Numerical Results}
+%--------------------------------------------------------------------------
+
+Computing times (on DEC Alpha and DEC 5000 workstations) 
+for a single critical point varied from a few
+seconds in Case 1 to a few minutes in Case 3.
+Subroutines to compute an enclosure of the incomplete gamma function were 
+based on work by \cite{WangKennedyJASA} and on source code by \cite{Gessner}.
+
+Since the expressions (\ref{cdf1}), (\ref{cdf2}), and (\ref{cdf3})
+depend on $\rho$ only through
+$\rho^2$, tables need only include nonnegative values of $\rho$ and need not
+include the trivial values of $\rho=0$ and $\rho=1$.
+For Case 1, 
+tables \ref{case1:05} and \ref{case1:01} illustrate critical points
+$c$ for $P(Y_1 \leq c, Y_2 \leq c) = 1- \alpha$ where $Y_1 \sim \chi^2(m), 
+Y_2 \sim \chi^2(m)$.  
+\renewcommand{\arraystretch}{1.3}
+%\newdimen\captionwidth \captionwidth=4.5in
+\begin{table}[ht!]
+\caption{Upper 0.05 percentile points of the bivariate chi-square distribution:
+Case 1.}
+\label{case1:05}
+\begin{center} 
+\begin{tabular}{cccc} \hline\hline
+$\rho$ & m = 2 & m = 12 & m = 40 \\ \hline
+0.1  & $ 7.348735242636_{62}^{94} $ & $ 23.291675614644_3^9 $       & $ 59.27375898559_{83}^{93} $ \\
+0.2  & $ 7.337736654468_{52}^{73} $ & $ 23.279893907495_0^5  $      & $ 59.25865809054_{18}^{33}$ \\
+0.3  & $ 7.318116097295_{00}^{33} $ & $ 23.257752618706_3^8 $       & $ 59.2298092064_{299}^{315}$ \\
+0.4  & $ 7.28777721964_{194}^{231} $ & $ 23.22124105410_{13}^{20}  $ & $ 59.1811443051_{290}^{316} $ \\
+0.5  & $ 7.243389878426_{03}^{35} $ & $ 23.16405309924_{72}^{80}  $ & $ 59.10283493307_{11}^{35} $ \\
+0.6  & $ 7.179739084402_{00}^{47} $ & $ 23.07634122520_{06}^{19}  $ & $ 58.9791571922_{782}^{826} $ \\
+0.7  & $ 7.088168635581_{21}^{74} $ & $ 22.94173918779_{09}^{26}  $ & $ 58.78357869885_{04}^{65} $ \\
+0.8  & $ 6.95217862545_{462}^{563} $ & $ 22.72905146810_{00}^{30}  $ & $ 58.4651869030_{710}^{830} $ \\
+0.9  & $ 6.73002568707_{492}^{699} $ & $ 22.3595746799_{195}^{263}        $ &
+$ 57.8954062111_{042}^{259} $ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1}
+%\newdimen\captionwidth \captionwidth=4.5in
+\renewcommand{\arraystretch}{1.3}
+\begin{table}[ht]
+\caption{Upper 0.01 percentile points of the bivariate chi-square distribution:
+Case 1.}
+\label{case1:01}
+\begin{center}
+\begin{tabular}{cccc} \hline
+$\rho$ & m = 2 & m = 12 & m = 40 \\ \hline
+0.1  & $ 10.5901634351_{788}^{801} $ & $ 28.29092305136_{16}^{39}  $ & $ 66.75375793961_{31}^{68} $ \\
+0.2  & $ 10.58532786052_{42}^{63} $ & $ 28.28686089292_{00}^{24}  $ & $ 66.74911374475_{21}^{81} $ \\
+0.3  & $ 10.5756426989_{481}^{497} $ & $ 28.27821885663_{04}^{28}  $ & $ 66.739131842_{2970}^{3039} $ \\
+0.4  & $ 10.558524765_{1993}^{2011} $ & $ 28.26172939228_{21}^{55}  $ & $ 66.719658957_{0966}^{1106} $ \\
+0.5  & $ 10.52993690134_{70}^{86} $ & $ 28.2317690519_{490}^{526} $ & $ 66.6830938986_{282}^{385} $ \\
+0.6  & $ 10.48358637908_{68}^{91} $ & $ 28.17882820433_{21}^{81}  $ & $ 66.6158600156_{067}^{257} $ \\
+0.7  & $ 10.40898564766_{38}^{64} $ & $ 28.0861355790_{655}^{724} $ & $ 66.4929962883_{619}^{877} $ \\
+0.8  & $ 10.28602680729_{30}^{80} $ & $ 27.9204710072_{418}^{549} $ & $ 66.263713351_{3945}^{4451} $ \\
+0.9  & $ 10.063591724_{1974}^{2077} $ & $ 27.5960985268_{378}^{674} $ & $
+65.795086198_{8534}^{9439} $ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1}
+For Case 2, $Y_1 \sim \chi^2(m), Y_2 \sim \chi^2(m+n), n > 0$ and
+there are $m$ nonzero canonical correlations.
+Examples of critical points $c$ for $P(Y_1 \leq c, Y_2 \leq c) = 1- \alpha$
+are given in table \ref{case2:05}.
+%\newdimen\captionwidth \captionwidth=3.7in
+\renewcommand{\arraystretch}{1.3}
+\begin{table}[ht]
+\caption{Upper 0.05 percentile points of the bivariate chi-square distribution:
+Case 2.}
+\label{case2:05}
+\begin{center}
+\begin{tabular}{cccccc} \hline
+$ m $ & $m+n$ & $\rho=0.2$ & $\rho=0.4$ & $\rho=0.6$ &  $\rho=0.8$  \\ \hline
+8 & 10 & $19.25562949840_{57}^{83}$ & $19.2145575272_{051}^{118}$ & $19.1173225955_{268}^{465}$ & $18.90189596_{29502}^{30343}$\\ 
+8 & 12 & $21.43987191019_{01}^{31}$ & $21.4161617406_{243}^{314}$  & $21.3604107620_{459}^{626}$ & $21.243609643_{8386}^{9166}$\\
+8 & 14 & $23.8527709314_{093}^{125}$ & $23.8412410690_{085}^{155}$ & $23.8140331030_{653}^{887}$ & $23.759702671_{5233}^{6462}$\\
+8 & 16 & $26.3613220302_{665}^{700}$ & $26.356264614_{7941}^{8029}$ & $26.3442149104_{417}^{737}$ & $26.321129600_{2334}^{3403}$\\
+8 & 18 & $28.89382780550_{57}^{94}$ & $28.8917353286_{655}^{769}$ & $28.8866926661_{478}^{733}$ & $28.877401302_{4641}^{6245}$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1}
+In Case 3, $Y_1 \sim \chi^2(m+n), Y_2 \sim \chi^2(m+p), n > 0,p > 0$ 
+and there are $m$ nonzero canonical correlations.  Table \ref{case3:05}
+illustrates critical points for this case.
+\renewcommand{\arraystretch}{1.3}
+\begin{table}[ht]
+\caption{Upper 0.05 percentile points of the bivariate chi-square distribution:
+Case 3.}
+\label{case3:05}
+\begin{center}
+\begin{tabular}{ccccc} \hline
+$m$ & $n$  & $p$ & $\rho=0.4$ & $\rho=0.6$ \\ \hline
+7   & 1      & 11    & $28.892120984_{6486}^{7236} $ & $28.887920316_{3450}^{7461} $ \\
+6   & 2      & 12    & $28.8924903043_{189}^{929}  $ & $28.88907530_{39005}^{42914} $ \\
+5   & 3      & 13    & $28.892843220_{3505}^{4235} $ & $28.890155051_{1105}^{4641} $ \\
+4   & 4      & 14    & $28.893179676_{7850}^{8563} $ & $28.891157355_{1279}^{6196} $ \\
+3   & 5      & 15    & $28.893499628_{8497}^{9162} $ & $28.89208036_{88632}^{93269} $ \\
+2   & 6      & 16    & $28.893803042_{7959}^{8769} $ & $28.892922583_{0023}^{3886} $ \\
+1   & 7      & 17    & $28.894089895_{8054}^{9047} $ &
+$28.89368281_{09926}^{14038} $ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+The illustrative tables presented here are limited to $c_1 = c_2$ when
+computing the values of $(c_1, c_2)$ in $P(Y_1 \leq c_1, Y_2 \leq c_2) =
+1-\alpha$.  Other schemes are possible, for example, fixing $c_1$ and 
+calculating $c_2$, or by including a 
+constraint.  Distinct values of $c_1$ and $c_2$ can be chosen when
+$1-\alpha$ is the quantity to be computed.
+
+Tables for the approximate 
+critical points of the bivariate chi-square distribution 
+have previously appeared in \cite{GunstNote}, \cite{Gunst}, 
+and \cite{Krishnaiah80}.
+\cite{Jensen} determine the probability content over select square and
+rectangular regions for which the marginal probabilities are specified.
+\cite{Dutt76} describe an alternative method for calculating multivariate
+chi-square probabilities using integral representations.
+The narrow interval enclosures obtained here are 
+useful for checking the accuracy of
+previously tabulated values.   Indeed, Table I  of \cite{GunstNote},
+{\it Upper 100$\alpha$\% Critical Points},
+is discovered to be widely accurate to only two decimal places (three
+are given), and the values in Table II, {\it Lower 5\% Critical Points},
+appear to be entirely incorrect.  As 
+noted in the text that accompanies the two tables of \cite{GunstNote},
+the critical points for $\rho = 0.10$ are
+nearly identical to the univariate critical points for 
+$\alpha^* = 1 - (1-\alpha)^{(1/2)}$.  This observation holds for values
+obtained in this article, but does not hold for the previously 
+published values.
+The values in Table 6 of \cite{Krishnaiah80}, {\it Percentage
+Points of the bivariate chi-square distribution}, should be multiplied by
+two to obtain the correct values, and are then accurate to only two decimal
+places.  If, for example, the incorrect values had been used to construct a
+confidence ellipsoid for the distribution of the variances of two random
+variables, the ellipsoid would be far too small to achieve the desired
+confidence. 
+    
+%--------------------------------------------------------------------------
+
+\section{A BIVARIATE $F$ DISTRIBUTION\label{sec:bivf}}
+
+A multivariate $F$ distribution, though not common, has useful applications in
+statistics. \cite{Krishnaiah75} point out its use in hypothesis testing under
+fixed-effects models, in certain two-way classification models, and in
+simultaneous testing of no treatment and block effects in symmetrical, 
+balanced incomplete block designs.  
+Tables for percentage points of a multivariate $F$
+distribution have appeared most recently in \cite{Krishnaiah80}.  
+
+The multivariate $F$ distribution considered by
+\cite{Krishnaiah75} and \cite{Krishnaiah80} is reconsidered here.
+Let $S = (s_{ij})$ be a Wishart random matrix with $m$ degrees of 
+freedom and 
+$E(S) = m\Sigma = m(\sigma_{ij})$.  The joint distribution of
+$s_{11},\ldots,s_{pp}$, the diagonal
+elements of $S$, is a multivariate $\chi^2$ 
+distribution with $m$ degrees of freedom.  The matrix $\Sigma$ is the
+covariance matrix of the underlying multivariate normal random variable.
+Let $F_i = \frac{s_{ii} \sigma^2/m }{s^2\sigma_{ii}/n}$ 
+($i = 1,\ldots,p$) where $s^2/\sigma^2$ is independently 
+distributed as a $\chi^2$ random variable with $n$ degrees of freedom.
+Then the joint distribution of $F_1, \ldots, F_p$ is a multivariate $F$
+distribution with $(m,n)$ degrees of freedom.  When $p = 2$, 
+$\rho = \sigma_{12}/{(\sigma_{11}\sigma_{22})}^{1/2}$
+is the correlation between standard normal random
+variables that underlie the bivariate $\chi^2$ distribution.
+The bivariate distribution function of $F_1$ and $F_2$, 
+first introduced by \cite{Krishnaiah65}, can be expressed as 
+\begin{equation}
+\label{eq:biv.f.cdf}
+P(F_1 \leq d_1, F_2 \leq d_2) =
+  (1-\rho^2)^{m/2} 
+  \sum_{j=0}^\infty 
+  \frac{\Gamma (\frac{m}{2}+j)}{j! \Gamma (\frac{m}{2})} 
+  \rho^{2j} B_j
+\end{equation}
+where
+$$ 
+B_j = \int_0^\infty \frac{e^{-z/2} z^{n/2-1}}{2^{n/2} \Gamma (n/2)} 
+        I_{1j} I_{2j} dz
+$$
+and 
+\begin{equation}
+I_{kj} =   \frac{1}{2^{m/2+j} \Gamma (m/2 +j)} 
+     \int_0^{\frac{d_k m z}{2n(1-\rho^2)}} e^{-u/2} u^{m/2+j-1} du 
+  = \gamma\left(\frac{m}{2}+j, \frac{d_k m z}{2n(1-\rho^2)}\right)
+\end{equation}
+where $\gamma(\cdot, \cdot) $ is the incomplete gamma function. 
+
+The challenging aspect of computing an interval
+enclosure of a critical point for the
+bivariate $F$ distribution is to find an appropriate rational interval 
+function that gives reasonably tight bounds for the enclosure of the
+distribution function.
+When the infinite series in (\ref{eq:biv.f.cdf}) is 
+truncated after $t+1$ terms, 
+a bound on the truncation error $r_t$ given by \cite{Krishnaiah75} is
+the same as equation (\ref{error1}) for the bivariate chi-square distribution.
+Let $p_t$ denote the series in (\ref{eq:biv.f.cdf}) 
+truncated after $t+1$ terms, and
+let ${\bf p}_t$ and ${\bf r}_t$ denote interval enclosures of $p_t$ and $r_t$
+respectively.  Then 
+$P[Y_1 \leq d_1, Y_2 \leq d_2] = p_t + r_t \in
+[ \underline{p}_t , \overline{p}_t + \overline{r}_t]$ for all $t$.  See
+section \ref{sec:bivchi} for the particular $t$ used in calculations.
+
+To compute an enclosure for $B_j$ via a rational interval function,
+ ideas similar to those of
+\cite{AmosBulgren} are used.  The integral $B_j$ is split into three pieces,
+\begin{equation}
+  B_j = \int_0^\infty \cdot \, dz = \int_0^{\varepsilon _1} \cdot \, dz 
+    + \int_{\varepsilon _1}^{\varepsilon _2} \cdot \, dz 
+    + \int_{\varepsilon _2}^\infty \cdot \, dz,
+   \label{three:integral}
+\end{equation}
+and then the left and right tails of $B_j$ are enclosed by the following
+bounds: 
+$$
+0 \leq \int_0^{\varepsilon _1} \cdot \, dz \leq \varepsilon _1 
+\nonumber
+$$
+$$
+0 \leq \int_{\varepsilon _2}^\infty \cdot \, dz 
+  \leq 1 - \gamma\left(\frac{n}{2}, \frac{\varepsilon _2}{2}\right).
+$$
+The middle integrand in the right-hand side of 
+(\ref{three:integral}) covers a finite domain, over
+which the second derivative exists, and is computed by 
+first-order Newton-Cotes quadrature.  Some references to numerical quadrature
+with automatic result verification appear in \cite{Kelch}.  The general form
+of Newton-Cotes quadrature is
+\begin{eqnarray}
+\lefteqn{
+\int_a^b f(x) dx = h\left[\frac{1}{2}f(a) + f(a+h) + f(a+2h) + \cdots + \right.}
+\hspace{3.5in} \nonumber \\
+\left. f(a+(m-1)h)
++ \frac{1}{2}f(a+hm)\right] + E
+\end{eqnarray}
+where $h = (b-a)/m$ and the error term $E$ has the form 
+$E = - (b-a)^3 f''(\xi)/12m^2$
+for some $\xi \in (a,b)$.
+The interval extension of $E$ involves the computation of the interval
+enclosure of the second derivative of $f$,
+${\bf f}''([a,b])$.  If $f''$ is a rational function, as in this problem, 
+then the interval
+extension ${\bf f}''$ is inclusion monotonic and the width of 
+${\bf f}''([a,b])$ is likely to be greater than ${\bf f}''([a',b'])$ for
+$[a',b'] \subset [a,b]$.  Minimizing the width of the error term is one
+of the steps in achieving highly accurate final results.
+For this reason, the middle integral in the right-hand side of
+(\ref{three:integral})  is actually computed as the sum
+of a series of subintegrals, each of which is evaluated by numerical
+quadrature:
+\begin{equation}
+\int_{\epsilon _1}^{\epsilon _2} \cdot \, dz = 
+  \int_{\epsilon _1}^{\epsilon _1+\nu} \cdot \, dz
+ +\int_{\epsilon _1+\nu}^{\epsilon _1+2\nu} \cdot \, dz
+ + \cdots + \int_{\epsilon _1+(k-1)\nu}^{\epsilon _1+k\nu} \cdot \, dz
+ + \int_{\epsilon _1+k\nu}^{\epsilon _2} \cdot \, dz.
+\end{equation}
+Tuning the numerical integration
+parameters ($\epsilon_1, \epsilon_2, k, \nu, h, m$) of the method
+used here is not a straightforward matter.  Generally speaking,
+increasing the number of quadrature points will increase the accuracy
+(narrowness) of the final interval answer.  
+A limit is reached, however, when
+increasing the number of quadrature points becomes counter-productive.  This
+happens because each interval function evaluation at a quadrature point
+results in a slight amount of overestimation and underestimation of the true
+value.  Increasing $m$ results in a narrower enclosure of the error $E$ for
+each integrand, but eventually this gain is nullified by the sum of the
+overestimated and underestimated function values.  A similar phenomenon occurs
+in deciding how many subintegrals to use in evaluating
+$\int_{\epsilon_1}^{\epsilon_2} \cdot\, dz$.  Experimentation was used to
+select appropriate values for $\epsilon_1, \epsilon_2, k, \nu, h$ and $m$.
+  
+To achive the greatest possible accuracy, 
+a hand-derived expression for $f''$ was coded into the
+software instead of using automatic differentiation.  The
+resulting expression involves evaluation of 
+the term $x^{m/2-2}$ over an interval with
+a lower endpoint of $0$.  This limits the degrees of freedom to
+$m \geq 5$.
+%--------------------------------------------------------------------------
+\subsection{Computation of Tables and Numerical Results}
+
+\cite{Krishnaiah80} actually gives expressions for probability integrals over
+arbitrary rectangular regions, 
+$P(c_1 \leq F_1 \leq d_1,c_2 \leq F_2 \leq d_2)$,
+but in all previously published tables of critical points, $c_1=c_2 = 0$.
+Herein, tables of critical points $d$ were computed for 
+$P(F_1 \leq d, F_2 \leq d) = \alpha$.
+The computation of self-validated critical points for this bivariate $F$
+distribution is computationally intensive.  
+The probability content of a rectangular
+region can be computed in a few minutes, but this is likely to be
+prohibitively costly for implementation of real-time computation of critical
+points.  Since determination of critical points involves finding the roots of
+an equation, each {\it entry}
+in tables \ref{biv2} and \ref{biv3} required several hours to compute on a
+DEC 5000 workstation.  Less time would be required for wider enclosures.
+For the bivariate $F$ distribution, 
+the real utility of interval analysis is the guarantee of accuracy and
+verification of previously published tables.  The
+tables published in \cite{Krishnaiah75} and \cite{Krishnaiah80} are generally
+quite accurate, but do have slight errors in the last (hundredths) digit that
+are likely due to rounding, exactly the kind of error that interval analysis
+can eliminate.  Tables \ref{biv2} and \ref{biv3} illustrate the accuracy
+achieved by the software developed for this research.
+
+%\newdimen\captionwidth \captionwidth=3.5in
+\renewcommand{\arraystretch}{1.3}
+\begin{table}[ht!]
+\caption{Upper 0.05 percentile points of the bivariate F distribution. \label{biv2}}
+\begin{center}
+\begin{tabular}{cllll} \hline
+& \multicolumn{4}{c}{$n=10$} \\ \cline{2-5}
+$m$ & $ \rho=0.1$         & $ \rho=0.3$          & $ \rho=0.5$
+& $ \rho=0.7$ \\ \hline
+2 & $5.31734_{16}^{58}$  & $5.2768_{08}^{13}$  & $5.18758_{74}^{96}$ &  $5.02529_{34}^{78}$ \\
+4 & $4.3110_{77}^{81}$   & $4.28342_{02}^{36}$ & $4.22239_{28}^{63}$ & $4.11107_{12}^{52}$ \\
+6 & $3.89658_{49}^{81}$  & $3.87377_{14}^{47}$ & $3.82350_{20}^{55}$ & $3.73205_{38}^{79}$ \\
+8 & $3.66318_{34}^{49}$  & $3.64307_{48}^{81}$ & $3.59884_{59}^{95}$ & $3.51864_{01}^{45}$ \\
+10 & $3.51093_{60}^{94}$ & $3.49262_{65}^{99}$ & $3.4524_{18}^{23}$ & $3.37971_{35}^{84}$ \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1}
+\renewcommand{\arraystretch}{1.35}
+\begin{table}[ht!]
+\caption{Upper 0.01 percentile points of the bivariate F distribution. \label{biv3}}
+\begin{center}
+\begin{tabular}{cllll} \hline
+& \multicolumn{4}{c}{$n=10$} \\ \cline{2-5}
+$m$ & $\rho=0.1$         & $\rho=0.3$          & $\rho=0.5$          & $\rho=0.7$ \\ \hline
+2 & $9.3014_{81}^{99}$ & $9.2532_{09}^{24}$ & $9.1430_{46}^{61}$ & $8.9312_{01}^{17}$  \\
+4 & $7.1869_{87}^{98}$ & $7.1526_{58}^{70}$ & $7.0749_{24}^{36}$ & $6.9271_{83}^{94}$   \\
+6 & $6.3616_{77}^{99}$ & $6.3325_{83}^{93}$ & $6.26714_{03}^{96}$ & $6.1440_{58}^{67}$  \\
+8 & $5.9094_{61}^{83}$ & $5.8833_{19}^{28}$ & $5.8248_{14}^{23}$ & $5.7156_{66}^{75}$   \\
+10 &$5.6197_{38}^{60}$ & $5.5955_{87}^{96}$ & $5.5417_{47}^{56}$ & $5.4419_{29}^{38}$    \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+\renewcommand{\arraystretch}{1}
+
+%--------------------------------------------------------------------------
+\section{CONCLUSIONS\label{sec:conclusions}}
+
+The tables that appear in this article are included to demonstrate the very
+high precision and the guarantee of accuracy that are obtained via the use of
+interval analysis.  Except in certain cases, 
+the use of more digits in the table
+than significant digits in available data should be discouraged.  The great
+value of such high-quality numbers is more likely in knowing
+that the second
+digit of a critical point is guaranteed to be accurate than
+in knowing what the eighth digit is.  These tables can also be used to assess
+the quality of scalar algorithms.
+
+Even in algorithms where theoretical error analysis provides a bound
+for error terms,
+computer arithmetic rounding and cancellation errors can have catastrophic
+effects.  In this article, interval analysis techniques have been successfully
+applied to bivariate chi-square distributions and a bivariate $F$ distribution
+to produce tables of critical points with guaranteed error bounds.  The
+results obtained revealed inaccuracies and limitations of some earlier 
+published tables and verified the accuracy of other tables.  
+While correct tables are useful in and of themselves,
+this research also provides new methodologies for implementing self-verified
+computations in a statistical context.  Further research in the areas of
+interval analysis in statistical problems should produce fruitful
+results.
+
+\section*{Acknowledgements}
+
+The authors extend appreciation to anonymous referees for suggestions 
+that led to improvements in this article.
+
+\begin{thebibliography}{}
+
+\bibitem[Amos and Bulgren, 1972]{AmosBulgren}
+Amos, D.~E. and Bulgren, W.~G. (1972).
+\newblock Computation of a {M}ultivariate {F} {D}istribution.
+\newblock {\em Mathematics of Computation}, 26(117):255--264.
+\bibitem[ANSI/IEEE, 1987]{ANSI87}
+ANSI/IEEE (1987).
+\newblock A {R}adix-{I}ndependent {S}tandard for {F}loating-{P}oint
+{A}rithmetic.
+\newblock ANSI/IEEE Standard 854-1987.
+
+\bibitem[Dutt and Soms, 1976]{Dutt76}
+Dutt, J.~E. and Soms, A.~P. (1976).
+\newblock An {I}ntegral {R}epresentation {T}echnique for {C}alculating
+  {G}eneral {M}ultivariate {P}robabilities with an {A}pplication to
+  {M}ultivariate $\chi^2$.
+\newblock {\em Communications in Statistics--Theory and Methods}, 5:377--388.
+
+\bibitem[Gessner, 1992]{Gessner}
+Gessner, M. (1992).
+\newblock Self-{V}alidating {C}omputations of {S}tandard {N}ormal and
+  {I}ncomplete {G}amma {P}robabilities.
+\newblock Master's thesis, Iowa State University.
+
+\bibitem[Gunst, 1973]{GunstNote}
+Gunst, R.~F. (1973).
+\newblock On {C}omputing {C}ritical {P}oints for a {B}ivariate {C}hi-{S}quare
+  {R}andom {V}ariable.
+\newblock {\em Communications in Statistics}, 2:221--224.
+
+\bibitem[Gunst and Webster, 1973]{Gunst}
+Gunst, R.~F. and Webster, J.~T. (1973).
+\newblock Density {F}unctions of the {B}ivariate {C}hi-{S}quare {D}istribution.
+\newblock {\em Journal of  Statistical Computation and Simulation}, 2:275--288.
+
+\bibitem[Hansen, 1992]{HansenBook}
+Hansen, E. (1992).
+\newblock {\em Global {O}ptimization {U}sing {I}nterval {A}nalysis}.
+\newblock Marcel Dekker, New York.
+
+\bibitem[Hansen, 1997]{HansenSharp}
+Hansen, E. (1997).
+\newblock Sharpness in {I}nterval {C}omputations.
+\newblock {\em Reliable Computing}, 3:17--29.
+
+\bibitem[Jensen and Howe, 1968]{Jensen}
+Jensen, D.~R. and Howe, R.~B. (1968).
+\newblock Probability {C}ontent of the {B}ivariate {C}hi-{S}quare
+  {D}istribution {O}ver {R}ectangular {R}egions.
+\newblock {\em Virginia Journal of Science}, 19:233--239.
+
+\bibitem[Jensen and Jones, 1969]{Jensen69}
+Jensen, D.~R. and Jones, M.~Q. (1969).
+\newblock Simultaneous {C}onfidence {I}ntervals for {V}ariances.
+\newblock {\em Journal of the {A}merican {S}tatistical {A}ssociation},
+  64:324--332.
+
+\bibitem[Kelch, 1993]{Kelch}
+Kelch, R. (1993).
+\newblock Numerical {Q}uadrature by {E}xtrapolation with {A}utomatic {R}esult
+  {V}erification.
+\newblock In Adams, E. and Kulisch, U., editors, {\em Scientific {C}omputing
+  with {A}utomatic {R}esult {V}erification}, pages 143--185. Academic Press,
+  New York.
+
+\bibitem[{Kn\"uppel}, 1993a]{KnuppelBIAS}
+{Kn\"uppel}, O. (1993a).
+\newblock {BIAS} -- {B}asic {I}nterval {A}rithmetic {S}ubroutines.
+\newblock Technical Report 93.3, Informationstechnik, Technische Uni.
+  Hamburg--Harburg.
+
+\bibitem[{Kn\"uppel}, 1993b]{KnuppelPROFIL}
+{Kn\"uppel}, O. (1993b).
+\newblock {PROFIL} -- {P}rogrammer's {R}untime {O}ptimized {F}ast {I}nterval
+  {L}ibrary.
+\newblock Technical Report 93.4, Informationstechnik, Technische Uni.
+  Hamburg--Harburg.
+
+\bibitem[Krishnaiah, 1965]{Krishnaiah65}
+Krishnaiah, P.~R. (1965).
+\newblock On the {S}imultaneous {ANOVA} and {MANOVA} {T}ests.
+\newblock {\em Annals of the Institute of Statistical Mathematics}, 17:35--53.
+
+\bibitem[Krishnaiah, 1980]{Krishnaiah80}
+Krishnaiah, P.~R. (1980).
+\newblock {\em Handbook of Statistics, Vol. 1}, chapter Computations of Some
+  Multivariate Distributions, pages 745--971.
+\newblock North-Holland Publishing Company, New York.
+
+\bibitem[McCullough, 1998]{McCullough98}
+McCullough, Bruce~D. (1998).
+\newblock Assessing the Reliability of Statistical Software: Part I.
+\newblock {\em The American Statistician}, 52:355--363.
+
+\bibitem[McCullough, 1999]{McCullough99}
+McCullough, Bruce~D. (1999).
+\newblock Assessing the Reliability of Statistical Software: Part II.
+\newblock {\em The American Statistician}, 53:149--159.
+
+\bibitem[Moore, 1966]{Moore66}
+Moore, R.~E. (1966).
+\newblock {\em {I}nterval {A}nalysis}.
+\newblock Prentice-Hall, Englewood Cliffs, N.J.
+
+\bibitem[Moore, 1979]{Moore79}
+Moore, R.~E. (1979).
+\newblock {\em Methods and {A}pplications of {I}nterval {A}nalysis}.
+\newblock SIAM, Philadelphia.
+
+\bibitem[Schuurmann et~al., 1975]{Krishnaiah75}
+Schuurmann, F.~J., Krishnaiah, P.~R., and Chattopadhyay, A.~K. (1975).
+\newblock Tables for a {M}ultivariate {F} {D}istribution.
+\newblock {\em Sankhya}, 37:308--331.
+
+\bibitem[Thisted, 1988]{Thisted}
+Thisted, R.~A. (1988).
+\newblock {\em Elements of {S}tatistical {C}omputing}.
+\newblock Chapman and Hall, New York.
+
+\bibitem[Tuprah and Woodall, 1986]{Tuprah86}
+Tuprah, K. and Woodall, W.~H. (1986).
+\newblock Bivariate {D}ispersion {Q}uality {C}ontrol {C}harts.
+\newblock {\em Communications in Statistics -- Simulation and Computing},
+  15:505--522.
+
+\bibitem[Wang and Kennedy, 1994]{WangKennedyJASA}
+Wang, M.~C. and Kennedy, W.~J. (1994).
+\newblock Self-{V}alidating {C}omputations of {P}robabilities for {S}elected
+  {C}entral and {N}oncentral {U}nivariate {P}robability {F}unctions.
+\newblock {\em Journal of the American Statistical Association}, 89:878--887.
+
+\bibitem[Wright and Kennedy, 2000]{WrightEM}
+Wright, K. and Kennedy, W.~J. (2000).
+\newblock An {I}nterval {A}nalysis {A}pproach to the {EM} {A}lgorithm.
+\newblock {\em Journal of Computational and Graphical Statistics}, 9:303--318.
+
+\end{thebibliography}
+
+\end{document}
+
